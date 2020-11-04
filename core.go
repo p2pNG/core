@@ -25,7 +25,7 @@ func goModule(mod *debug.Module) *debug.Module {
 		// TODO: track related Go issue: https://github.com/golang/go/issues/29228
 		// once that issue is fixed, we should just be able to use bi.Main... hopefully.
 		for _, dep := range bi.Deps {
-			if dep.Path == ImportPath {
+			if dep.Path == CoreImportPath {
 				return dep
 			}
 		}
@@ -34,5 +34,5 @@ func goModule(mod *debug.Module) *debug.Module {
 	return mod
 }
 
-// ImportPath is the package import path for p2pNG core.
-const ImportPath = "github.com/p2pNG/core"
+// CoreImportPath is the package import path for p2pNG core.
+const CoreImportPath = "github.com/p2pNG/core"
