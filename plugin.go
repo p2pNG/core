@@ -19,7 +19,6 @@ func GetRouterPluginRegistry() []RouterPlugin {
 		x[i] = plugins[name]
 		i++
 	}
-
 	return x
 }
 
@@ -30,7 +29,7 @@ func GetRouterPlugin(name string) (RouterPlugin, bool) {
 
 type RouterPlugin interface {
 	PluginInfo() *PluginInfo
-	RegisterRouter(router chi.Router)
+	GetRouter() chi.Router
 }
 
 type PluginInfo struct {
