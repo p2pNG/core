@@ -1,9 +1,17 @@
 # p2pNG Core
 ## 开发环境
 - Requirements: 
-    - [Golang](https://golang.org/dl/) Version 1.15
+    - 安装[Golang](https://golang.org/dl/) Version 1.15
+    - 配置Go Modules环境变量
+        - 方案1: 配置GOPROXY，例如使用https://goproxy.cn/
+        - 方案2: 配置https_proxy，指向梯子的本地http代理端口
+    - 建议使用[GoLand](https://www.jetbrains.com/go/) IDE
+    - 安装**godoc**,`go get golang.org/x/tools/cmd/godoc`
 - Release Build:
     - [core-builder](https://github.com/p2pNG/core-builder)
+- Generate Docs
+    - 在项目跟目录下运行`godoc`，浏览器打开
+    [localhost:6060](http://localhost:6060/pkg/github.com/p2pNG/core/)
 
 ## 项目架构
 ```

@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Return the Hostname along with a random string
 func GetHostname() string {
 	h, err := os.Hostname()
 	if err != nil {

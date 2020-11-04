@@ -29,6 +29,8 @@ func GetCertBundleFilename(name string) string {
 	return path.Join(basePath, name+".pfx")
 }
 
+// Get or create a Certificate Bundle.
+// Especially for client certificate, user may need to import to system.
 func GetCertBundle(name string, subject string) ([]byte, error) {
 	certFile := GetCertBundleFilename(name)
 	_, err := os.Stat(certFile)
