@@ -28,9 +28,12 @@ func createDefaultHttpClient() (err error) {
 	}
 	defaultHttpClient = &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
+			//todo: Do not skip verifys
 			InsecureSkipVerify: true,
 			Certificates:       []tls.Certificate{cert},
 		},
 	}}
 	return
 }
+
+//todo: Create QUIC request client

@@ -37,4 +37,5 @@ type PluginInfo struct {
 	Name    string
 	Version string
 	Prefix  string
+	Buckets []string
 }
