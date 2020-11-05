@@ -55,6 +55,6 @@ jobs:
       - name: Publish artifact
         uses: actions/upload-artifact@v1
         with:
-          name: p2pNG-core_${{ runner.os }}_${{ steps.vars.outputs.short_sha }}{{matrix.BIN_SUFFIX}}
+          name: p2pNG-core_${{ runner.os }}_${{ steps.vars.outputs.short_sha }}${{ matrix.BIN_SUFFIX }}
           path: ./p2pNG-core
         # todo: Use core-builder to build
