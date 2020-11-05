@@ -50,6 +50,10 @@
     git pull
     git checkout -b [YOUR_BRANCH_NAME] master
     ```
+3. 对于团队成员，应注意如下几点
+    - Commit Message中、Pull Request的标题中必须包含Jira中的任务编号，例如`[P2PNG-27] Configure Github Actions CI`
+    - Branch命名也建议包含任务编号的数字部分，例如：`27-configure-ci`
+    - 提交代码前，需要使用`golint ./...`确认代码不存在问题；使用`go fmt ./...`进行代码格式化
 3. 在`[YOUR_BRANCH_NAME]`branch上进行开发，完成开发后首次push如下
     `git push --set-upstream origin [YOUR_BRANCH_NAME]`；
     后续如有更多commit需要提交，直接`git push`到此分支即可
