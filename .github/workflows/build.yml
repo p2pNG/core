@@ -28,17 +28,13 @@ jobs:
           - os: windows-latest
             BIN_SUFFIX: .exe
     steps:
-      - name: Setup vars
-        id: vars
-        run: echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
+      - name: Checkout codebase
+        uses: actions/checkout@v2
 
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
           go-version: ^1.15
-
-      - name: Checkout codebase
-        uses: actions/checkout@v2
 
       - name: Cache go module
         uses: actions/cache@v2
@@ -46,6 +42,10 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
+
+      - name: Setup vars
+        id: vars
+        run: echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
 
       - name: Build
         working-directory: ./cmd
