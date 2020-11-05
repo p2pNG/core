@@ -15,6 +15,7 @@ import (
 
 //todo: Use core-builder to load
 import _ "github.com/p2pNG/core/services/status"
+import _ "github.com/p2pNG/core/services/discovery"
 
 var commandRun = &cobra.Command{
 	Use:   "start",
@@ -34,7 +35,7 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 	router.Use(middleware.Recoverer)
 	plugins := core.GetRouterPluginRegistry()
 	//todo: Replace with real config data
-	x := "{\"BuildName\":\"Hello World\"}"
+	x := "{\"BuildName\":\"Hello World\",\"LocalDiscoveryPort\":6553}"
 	for _, plugin := range plugins {
 		info := plugin.PluginInfo()
 		logging.Log().Info("loading router plugin",
