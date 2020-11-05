@@ -53,8 +53,9 @@ jobs:
         run: go build -trimpath -ldflags="-w -s" -v -o p2pNG-core ./cmd
 
       - name: Publish artifact
-        uses: actions/upload-artifact@v1
+        if: failure()
+        uses: actions/upload-artifact@v2
         with:
-          name: p2pNG-core_${{ runner.os }}_${{ steps.vars.outputs.short_sha }}${{ matrix.BIN_SUFFIX }}
+          name: p2pNG-core-${{ runner.os }}-${{ steps.vars.outputs.short_sha }}${{ matrix.BIN_SUFFIX }}
           path: ./p2pNG-core
         # todo: Use core-builder to build
