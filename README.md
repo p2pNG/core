@@ -1,4 +1,6 @@
 # p2pNG Core
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fp2pNG%2Fcore.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fp2pNG%2Fcore?ref=badge_shield)
+
 ## 开发环境
 - Requirements: 
     - 安装[Golang](https://golang.org/dl/) Version 1.15
@@ -58,3 +60,7 @@
     `git push --set-upstream origin [YOUR_BRANCH_NAME]`；
     后续如有更多commit需要提交，直接`git push`到此分支即可
 4. 按照Console中提示，到GitHub中创建Pull Request，等待CI构建和检查、审阅、合并
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fp2pNG%2Fcore.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fp2pNG%2Fcore?ref=badge_large)
