@@ -22,14 +22,17 @@ func GetRouterPluginRegistry() []RouterPlugin {
 	return x
 }
 
-func GetRouterPlugin(name string) (RouterPlugin, bool) {
-	x, ok := plugins[name]
-	return x, ok
+// Get a Router Plugin from registry by key
+func GetRouterPlugin(name string) (p RouterPlugin, ok bool) {
+	p, ok = plugins[name]
+	return
 }
 
 type RouterPlugin interface {
 	PluginInfo() *PluginInfo
 	GetRouter() chi.Router
+	Init() error
+	Config() interface{}
 }
 
 type PluginInfo struct {
