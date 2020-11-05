@@ -49,9 +49,9 @@ func (s *Subject) GetKeyId() []byte {
 	if err != nil {
 		logging.Log().Error("compile subject failed", zap.Error(err))
 	}
-	idHash.Write(data)
+	_, _ = idHash.Write(data)
 	toEnc := "p2pNG-User-Id:" + s.CommonName
-	idHash.Write([]byte(toEnc))
+	_, _ = idHash.Write([]byte(toEnc))
 	keyId := idHash.Sum(nil)
 	return keyId
 }

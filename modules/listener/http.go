@@ -18,9 +18,12 @@ func ListenQUIC(r chi.Router, addr string) error {
 	return http3.ListenAndServeQUIC(addr, "", "", r)
 }
 
-func Listen(r chi.Router, addr string) {
+func Listen(r chi.Router, addr string, tls bool) {
 	//todo: Change this
-	go ListenHttp(r, addr)
-	go ListenTLS(r, addr)
-	go ListenQUIC(r, addr)
+	if tls {
+		go func() { _ = ListenTLS(r, addr) }()
+		go func() { _ = ListenQUIC(r, addr) }()
+	} else {
+		go func() { _ = ListenHttp(r, addr) }()
+	}
 }

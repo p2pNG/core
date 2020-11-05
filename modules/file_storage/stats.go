@@ -72,9 +72,9 @@ func StatFile(filepath string, blockSize int64) (fi *FileInfo, err error) {
 			break
 		}
 
-		fileSum.Write(buf)
+		_, _ = fileSum.Write(buf)
 		blockHash.Reset()
-		blockHash.Write(buf)
+		_, _ = blockHash.Write(buf)
 		fi.BlockHash = append(fi.BlockHash, blockHash.Sum(nil))
 	}
 	if flagTail {
@@ -82,9 +82,9 @@ func StatFile(filepath string, blockSize int64) (fi *FileInfo, err error) {
 			err = errors.New("read file error, length not matched")
 			return
 		}
-		fileSum.Write(buf)
+		_, _ = fileSum.Write(buf)
 		blockHash.Reset()
-		blockHash.Write(buf)
+		_, _ = blockHash.Write(buf)
 		fi.BlockHash = append(fi.BlockHash, blockHash.Sum(nil))
 	}
 	fi.Hash = fileSum.Sum(nil)
