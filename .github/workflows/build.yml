@@ -48,7 +48,6 @@ jobs:
         run: echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
 
       - name: Build
-        working-directory: ./cmd
         env:
           CGO_ENABLED: 0
         run: go build -trimpath -ldflags="-w -s" -v -o p2pNG-core ./cmd
@@ -57,5 +56,5 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: p2pNG-core_${{ runner.os }}_${{ steps.vars.outputs.short_sha }}{{matrix.BIN_SUFFIX}}
-          path: ./cmd/p2pNG-core
+          path: ./p2pNG-core
         # todo: Use core-builder to build
