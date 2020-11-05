@@ -1,10 +1,20 @@
 package commands
 
 import (
-	"github.com/davecgh/go-spew/spew"
+	"encoding/json"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/p2pNG/core"
 	"github.com/p2pNG/core/internal/logging"
+	"github.com/p2pNG/core/modules/database"
+	"github.com/p2pNG/core/modules/listener"
 	"github.com/spf13/cobra"
+	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 )
+
+//todo: Use core-builder to load
+import _ "github.com/p2pNG/core/services/status"
 
 var commandRun = &cobra.Command{
 	Use:   "start",
@@ -12,7 +22,52 @@ var commandRun = &cobra.Command{
 	Run:   commandRunExec,
 }
 
-func commandRunExec(c *cobra.Command, _ []string) {
-	logging.Log().Info("Hello")
-	logging.Log().Info(spew.Sdump(c))
+func commandRunExec(_ *cobra.Command, _ []string) {
+
+	db, err := database.GetDBEngine()
+	if err != nil {
+		logging.Log().Fatal("init database error", zap.Error(err))
+	}
+
+	router := chi.NewRouter()
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	plugins := core.GetRouterPluginRegistry()
+	//todo: Replace with real config data
+	x := "{\"BuildName\":\"Hello World\"}"
+	for _, plugin := range plugins {
+		info := plugin.PluginInfo()
+		logging.Log().Info("loading router plugin",
+			zap.String("plugin", info.Name), zap.String("version", info.Version))
+		//todo: Use Real config
+		err := json.Unmarshal([]byte(x), plugin.Config())
+		if err != nil {
+			logging.Log().Fatal("load config for plugin failed", zap.Error(err), zap.String("plugin", info.Name))
+		}
+
+		err = plugin.Init()
+		if err != nil {
+			logging.Log().Fatal("init for plugin failed", zap.Error(err), zap.String("plugin", info.Name))
+		}
+
+		router.Mount(info.Prefix, plugin.GetRouter())
+
+		err = db.Update(func(tx *bolt.Tx) error {
+			for _, buk := range info.Buckets {
+				_, err := tx.CreateBucketIfNotExists([]byte(buk))
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			logging.Log().Fatal("init database bucket failed", zap.Error(err), zap.String("plugin", info.Name))
+		}
+	}
+	// todo: Listen TLS + QUIC
+	err = listener.ListenHttp(router, ":6480")
+	if err != nil {
+		logging.Log().Fatal("init database error", zap.Error(err))
+	}
 }
