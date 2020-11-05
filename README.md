@@ -6,7 +6,8 @@
         - 方案1: 配置GOPROXY，例如使用https://goproxy.cn/
         - 方案2: 配置https_proxy，指向梯子的本地http代理端口
     - 建议使用[GoLand](https://www.jetbrains.com/go/) IDE
-    - 安装**godoc**,`go get golang.org/x/tools/cmd/godoc`
+    - 安装**godoc**,`go get -u golang.org/x/tools/cmd/godoc`
+    - 安装**golint**,`go get -u golang.org/x/lint/golint`
 - Release Build:
     - [core-builder](https://github.com/p2pNG/core-builder)
 - Generate Docs
@@ -38,3 +39,18 @@
     - token         Token签发、交换、验证
     - traversal     兼容无公网的IPv4用户： 通过UPNP,STUN,Proxy
 ```
+
+## 开发流程
+1. 首次开始代码工作的准备
+    - 对于团队成员可直接将[p2pNG/core](https://github.com/p2pNG/core) 克隆到本地，`git clone https://github.com/p2pNG/core`
+    - 对于非团队成员，需要先进行[Fork](https://github.com/p2pNG/core/fork) 操作，并将其克隆到本地
+2. 每次开发前，从最新的远程master分支创建本地分支，
+    ```shell script
+    git checkout master
+    git pull
+    git checkout -b [YOUR_BRANCH_NAME] master
+    ```
+3. 在`[YOUR_BRANCH_NAME]`branch上进行开发，完成开发后首次push如下
+    `git push --set-upstream origin [YOUR_BRANCH_NAME]`；
+    后续如有更多commit需要提交，直接`git push`到此分支即可
+4. 按照Console中提示，到GitHub中创建Pull Request，等待CI构建和检查、审阅、合并
