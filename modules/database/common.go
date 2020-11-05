@@ -9,7 +9,7 @@ import (
 var defaultDBEngine *bolt.DB
 
 func openDB() (err error) {
-
+	//todo: Add Occupy Check and Context
 	dbPath := path.Join(utils.AppDataDir(), "database")
 	defaultDBEngine, err = bolt.Open(dbPath, 0644, bolt.DefaultOptions)
 	return

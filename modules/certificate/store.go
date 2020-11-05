@@ -13,23 +13,28 @@ import (
 	"software.sslmate.com/src/go-pkcs12"
 )
 
+// GetCertFilename returns the file path of Certificate in the AppDataDir
 func GetCertFilename(name string) string {
 	basePath := path.Join(utils.AppDataDir(), "certificate")
 	_ = os.MkdirAll(basePath, 0755)
 	return path.Join(basePath, name+".cer")
 }
+
+// GetCertKeyFilename returns the file path of private key in the AppDataDir
 func GetCertKeyFilename(name string) string {
 	basePath := path.Join(utils.AppDataDir(), "certificate")
 	_ = os.MkdirAll(basePath, 0755)
 	return path.Join(basePath, name+".key")
 }
+
+// GetCertBundleFilename returns the file path of Certificate Bundle in the AppDataDir
 func GetCertBundleFilename(name string) string {
 	basePath := path.Join(utils.AppDataDir(), "certificate")
 	_ = os.MkdirAll(basePath, 0755)
 	return path.Join(basePath, name+".pfx")
 }
 
-// Get or create a Certificate Bundle.
+// GetCertBundle return or create a Certificate Bundle, based on GetCert and GetCertKey.
 // Especially for client certificate, user may need to import to system.
 func GetCertBundle(name string, subject string) ([]byte, error) {
 	certFile := GetCertBundleFilename(name)
@@ -51,11 +56,18 @@ func createCertBundle(name string, subject string) ([]byte, error) {
 		return nil, err
 	}
 	priv, err := x509.ParseECPrivateKey(privDer)
+	if err != nil {
+		return nil, err
+	}
 	pfx, err := pkcs12.Encode(rand.Reader, priv, cert, nil, "")
-	_ = ioutil.WriteFile(GetCertBundleFilename(name), pfx, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+	err = ioutil.WriteFile(GetCertBundleFilename(name), pfx, os.ModePerm)
 	return pfx, err
 }
 
+// GetCert return or create a self-signed Certificate.
 func GetCert(name, subject string) (*x509.Certificate, error) {
 	certFile := GetCertFilename(name)
 	_, err := os.Stat(certFile)
@@ -111,6 +123,7 @@ func createCert(name, subject string) ([]byte, error) {
 	return der, err
 }
 
+// GetCert return or create a private key
 func GetCertKey(name string) (key []byte, err error) {
 	privFile := GetCertKeyFilename(name)
 	_, err = os.Stat(privFile)
@@ -135,9 +148,12 @@ func createCertKey(name string) ([]byte, error) {
 	return priv, nil
 }
 
+// Der2Pem encodes der data to pem format
 func Der2Pem(data []byte, title string) string {
 	return string(pem.EncodeToMemory(&pem.Block{Type: title, Bytes: data}))
 }
+
+// Pem2Der decodes pem data to der format
 func Pem2Der(PEMString string) ([]byte, string) {
 	block, _ := pem.Decode([]byte(PEMString))
 	if block == nil {
