@@ -44,11 +44,17 @@ func (p *coreDiscoveryPlugin) PluginInfo() *core.PluginInfo {
 	}
 }
 
+type contextType int
+
+const (
+	pluginContext contextType = iota
+)
+
 func (p *coreDiscoveryPlugin) GetRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), "statusCtx", coreDiscoveryContext{Config: p.config})
+			ctx := context.WithValue(r.Context(), pluginContext, coreDiscoveryContext{Config: p.config})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
@@ -57,10 +63,4 @@ func (p *coreDiscoveryPlugin) GetRouter() chi.Router {
 
 func init() {
 	core.RegisterRouterPlugin(&coreDiscoveryPlugin{})
-}
-
-type NodeInfo struct {
-	Name      string
-	Version   string
-	BuildName string
 }
