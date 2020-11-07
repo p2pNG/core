@@ -11,7 +11,6 @@ var rootCmd = &cobra.Command{
 	Version: getVersionStatement(),
 }
 
-// Execute returns the root command for main to start the whole application
 func Execute() error {
 	return rootCmd.Execute()
 }
