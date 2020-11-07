@@ -4,29 +4,45 @@ import (
 	"github.com/p2pNG/core/internal/utils"
 	bolt "go.etcd.io/bbolt"
 	"path"
-	"time"
 )
 
 var defaultDBEngine *bolt.DB
 
 func openDB() (err error) {
+	//todo: Add Occupy Check and Context
 	dbPath := path.Join(utils.AppDataDir(), "database")
-	opts := bolt.DefaultOptions
-	opts.Timeout = time.Second * 5
-	defaultDBEngine, err = bolt.Open(dbPath, 0644, opts)
+	defaultDBEngine, err = bolt.Open(dbPath, 0644, bolt.DefaultOptions)
 	return
 }
 
-// GetDBEngine return the default DB Engine; if it is not opened, it will try open
+// TODO: Declare in the plugin
+var defaultBuckets = []string{"file", "discovery_registry"}
+
+func initBuckets() (err error) {
+	if defaultDBEngine != nil {
+		err = defaultDBEngine.Update(func(tx *bolt.Tx) error {
+			for bukIdx := range defaultBuckets {
+				_, err := tx.CreateBucketIfNotExists([]byte(defaultBuckets[bukIdx]))
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+	return
+}
 func GetDBEngine() (engine *bolt.DB, err error) {
 	if defaultDBEngine == nil {
 		err = openDB()
+	}
+	if defaultDBEngine != nil {
+		err = initBuckets()
 	}
 	engine = defaultDBEngine
 	return
 }
 
-// CloseDBEngine close the default DB Engine
 func CloseDBEngine() {
 	if defaultDBEngine != nil {
 		_ = defaultDBEngine.Close()
