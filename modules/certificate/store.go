@@ -38,12 +38,10 @@ func GetCertBundleFilename(name string) string {
 // Especially for client certificate, user may need to import to system.
 func GetCertBundle(name string, subject string) ([]byte, error) {
 	certFile := GetCertBundleFilename(name)
-	_, err := os.Stat(certFile)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(certFile); os.IsNotExist(err) {
 		return createCertBundle(name, subject)
-	} else {
-		return ioutil.ReadFile(certFile)
 	}
+	return ioutil.ReadFile(certFile)
 }
 func createCertBundle(name string, subject string) ([]byte, error) {
 	privDer, err := GetCertKey(name)
@@ -70,9 +68,8 @@ func createCertBundle(name string, subject string) ([]byte, error) {
 // GetCert return or create a self-signed Certificate.
 func GetCert(name, subject string) (*x509.Certificate, error) {
 	certFile := GetCertFilename(name)
-	_, err := os.Stat(certFile)
 	var certDer []byte
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(certFile); os.IsNotExist(err) {
 		certDer, err = createCert(name, subject)
 		if err != nil {
 			return nil, err
@@ -93,13 +90,13 @@ func createCert(name, subject string) ([]byte, error) {
 		return nil, err
 	}
 	sub := wrapCert.CreateSubject(subject)
-	x := wrapCert.CreateTemplate(sub.GetRaw(), sub.GetKeyId(), rand2.Int63())
+	x := wrapCert.CreateTemplate(sub.GetRaw(), sub.GetKeyID(), rand2.Int63())
 	x.SetExpire(1, 0, 0)
 	x.SetUsage([]int{0, 2})
 	x.SetExtUsage([]int{1, 2})
 
 	parCert := x.GetRaw()
-	x.AuthorityKeyId = sub.GetKeyId()
+	x.AuthorityKeyId = sub.GetKeyID()
 
 	/*todo: Change This If need
 	x.SetAlgorithm("ed25519", "")
@@ -123,11 +120,10 @@ func createCert(name, subject string) ([]byte, error) {
 	return der, err
 }
 
-// GetCert return or create a private key
+// GetCertKey return or create a private key
 func GetCertKey(name string) (key []byte, err error) {
 	privFile := GetCertKeyFilename(name)
-	_, err = os.Stat(privFile)
-	if os.IsNotExist(err) {
+	if _, err = os.Stat(privFile); os.IsNotExist(err) {
 		key, err = createCertKey(name)
 	} else {
 		privPem, err := ioutil.ReadFile(privFile)
