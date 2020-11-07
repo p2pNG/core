@@ -12,12 +12,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// Subject is a pkix.Name wrapper for template use
 type Subject pkix.Name
 
+// CreateSubject create a most simple Subject
 func CreateSubject(name string) *Subject {
 	return &Subject{CommonName: name}
 }
 
+// SetLocation can simply set the location
 func (s *Subject) SetLocation(country, province, city string) {
 	s.Country = []string{country}
 	if province != "" {
@@ -28,6 +31,7 @@ func (s *Subject) SetLocation(country, province, city string) {
 	}
 }
 
+// SetOrg can simply set the org name and org unit name
 func (s *Subject) SetOrg(org, orgUnit string) {
 	s.Organization = []string{org}
 	if orgUnit != "" {
@@ -35,23 +39,27 @@ func (s *Subject) SetOrg(org, orgUnit string) {
 	}
 }
 
+// SetSerial can simply set the serial of the subject
 func (s *Subject) SetSerial(serial string) {
 	s.SerialNumber = serial
 }
 
+// GetRaw return the raw pkix.Name after fill up the template
 func (s *Subject) GetRaw() *pkix.Name {
 	return (*pkix.Name)(s)
 }
 
-func (s *Subject) GetKeyId() []byte {
+// GetKeyID return the hash sum of this Subject
+func (s *Subject) GetKeyID() []byte {
 	idHash := sha256.New()
 	data, err := asn1.Marshal(*s)
 	if err != nil {
-		logging.Log().Error("compile subject failed", zap.Error(err))
+		logging.Log().Error("compile Subject failed", zap.Error(err))
 	}
 	_, _ = idHash.Write(data)
+	//todo: Use Another Method to Generate
 	toEnc := "p2pNG-User-Id:" + s.CommonName
 	_, _ = idHash.Write([]byte(toEnc))
-	keyId := idHash.Sum(nil)
-	return keyId
+	keyID := idHash.Sum(nil)
+	return keyID
 }
