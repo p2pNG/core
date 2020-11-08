@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
+	"syscall"
 )
 
 // todo: Use core-builder to load
@@ -70,8 +71,15 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 			logging.Log().Fatal("init database bucket failed", zap.Error(err), zap.String("plugin", info.Name))
 		}
 	}
-	listener.ListenBoth(router, ":6480")
-	sign := make(chan os.Signal, 1)
-	signal.Notify(sign, os.Interrupt, os.Kill)
-	<-sign
+	go func() {
+		err = listener.ListenBoth(router, ":6480")
+		if err != nil {
+			logging.Log().Fatal("start http service failed", zap.Error(err))
+		}
+	}()
+	{
+		osSignals := make(chan os.Signal, 1)
+		signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM)
+		<-osSignals
+	}
 }

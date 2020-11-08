@@ -85,23 +85,20 @@ func TestHostAvailable(address string) HTTPType {
 	}()
 
 	failed := 0
+	rt := HTTPType(0)
 	select {
-	case tp := <-status:
-		if tp == 0 {
-			failed++
-			if failed == 2 {
-				break
-			}
-		} else {
-			if tp == HTTPTypeQUIC {
-				tcpCancel()
-			} else {
-				udpCancel()
-			}
-			return tp
+	case rt = <-status:
+		if rt != 0 {
+			break
+		}
+		failed++
+		if failed == 2 {
+			break
 		}
 	}
-	return 0
+	tcpCancel()
+	udpCancel()
+	return rt
 }
 
 //todo: Create QUIC request client
