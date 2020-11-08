@@ -11,10 +11,16 @@ import (
 	"github.com/spf13/cobra"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-//todo: Use core-builder to load
-import _ "github.com/p2pNG/core/services/status"
+// todo: Use core-builder to load
+import (
+	// Services should import by core-builder, this is temporary solution
+	_ "github.com/p2pNG/core/services/status"
+)
 
 var commandRun = &cobra.Command{
 	Use:   "start",
@@ -65,9 +71,15 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 			logging.Log().Fatal("init database bucket failed", zap.Error(err), zap.String("plugin", info.Name))
 		}
 	}
-	// todo: Listen TLS + QUIC
-	err = listener.ListenHttp(router, ":6480")
-	if err != nil {
-		logging.Log().Fatal("init database error", zap.Error(err))
+	go func() {
+		err = listener.ListenBoth(router, ":6480")
+		if err != nil {
+			logging.Log().Fatal("start http service failed", zap.Error(err))
+		}
+	}()
+	{
+		osSignals := make(chan os.Signal, 1)
+		signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM)
+		<-osSignals
 	}
 }

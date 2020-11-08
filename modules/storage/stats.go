@@ -1,4 +1,4 @@
-package file_store
+package storage
 
 import (
 	"crypto/sha512"
@@ -8,9 +8,11 @@ import (
 	"time"
 )
 
-//todo: Declare in elsewhere
-const DefaultHashBufferSize = 4 * 1024 * 1024
+// DefaultFileBlockSize is used for the default parameter to split a file to several blocks
+//todo: May Declare in elsewhere
+const DefaultFileBlockSize = 4 * 1024 * 1024
 
+// StatLocalFile return the LocalFileInfo for a file in the disk
 func StatLocalFile(filepath string, blockSize int64) (lf *LocalFileInfo, err error) {
 	stat, err := os.Stat(filepath)
 	if err != nil {
@@ -31,9 +33,12 @@ func StatLocalFile(filepath string, blockSize int64) (lf *LocalFileInfo, err err
 	lf.Path = filepath
 	return
 }
+
+// StatFile return the FileInfo for a file in the disk
 func StatFile(filepath string, blockSize int64) (fi *FileInfo, err error) {
+	//todo: calling should be revered, while LocalFileInfo including full os.FileInfo
 	if blockSize <= 1024*1024 {
-		blockSize = DefaultHashBufferSize
+		blockSize = DefaultFileBlockSize
 	}
 
 	stat, err := os.Stat(filepath)
@@ -91,6 +96,7 @@ func StatFile(filepath string, blockSize int64) (fi *FileInfo, err error) {
 	return fi, nil
 }
 
+// FileInfo describe a file by the SHA512 checksum for itself and SHA512-256 of every block of it
 type FileInfo struct {
 	Name string
 	Size int64
@@ -100,8 +106,17 @@ type FileInfo struct {
 	BlockHash [][]byte
 }
 
+// LocalFileInfo extends FileInfo with the filepath and modify time
 type LocalFileInfo struct {
 	FileInfo
 	Path       string
 	LastModify time.Time
+}
+
+// SeedInfo contains a list of Files and WellKnown Peers
+type SeedInfo struct {
+	Title     string     //展示给用户的Title
+	Files     []FileInfo //包含的文件列表
+	WellKnown []string   //已知提供下载的节点地址
+	ExtraInfo []string   //附加展示给用户的信息
 }

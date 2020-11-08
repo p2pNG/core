@@ -38,11 +38,17 @@ func (p *coreStatusPlugin) PluginInfo() *core.PluginInfo {
 	}
 }
 
+type contextType int
+
+const (
+	pluginContext contextType = iota
+)
+
 func (p *coreStatusPlugin) GetRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), "statusCtx", coreStatusContext{Config: p.config})
+			ctx := context.WithValue(r.Context(), pluginContext, coreStatusContext{Config: p.config})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
@@ -54,6 +60,7 @@ func init() {
 	core.RegisterRouterPlugin(&coreStatusPlugin{})
 }
 
+// NodeInfo described the basic info of a node. Used for peer discovery
 type NodeInfo struct {
 	Name      string
 	Version   string
