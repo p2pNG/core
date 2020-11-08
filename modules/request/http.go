@@ -86,14 +86,9 @@ func TestHostAvailable(address string) HTTPType {
 
 	failed := 0
 	rt := HTTPType(0)
-	select {
-	case rt = <-status:
-		if rt != 0 {
-			break
-		}
-		failed++
-		if failed == 2 {
-			break
+	for failed < 2 && rt == 0 {
+		if rt = <-status; rt == 0 {
+			failed++
 		}
 	}
 	tcpCancel()

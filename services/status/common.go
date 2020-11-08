@@ -60,6 +60,7 @@ func init() {
 	core.RegisterRouterPlugin(&coreStatusPlugin{})
 }
 
+// NodeInfo described the basic info of a node. Used for peer discovery
 type NodeInfo struct {
 	Name      string
 	Version   string
