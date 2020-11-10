@@ -5,8 +5,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/p2pNG/core/internal/utils"
-	"github.com/p2pNG/core/modules/certificate"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/request"
 	bolt "go.etcd.io/bbolt"
@@ -17,40 +15,71 @@ import (
 )
 
 func ocspResponder(w http.ResponseWriter, r *http.Request) {
-	reqData, _ := ioutil.ReadAll(r.Body)
-	ocspReq, _ := ocsp.ParseRequest(reqData)
-	caCert, _ := certificate.GetCert("ca", utils.GetHostname()+" CA")
-	caKey, _ := certificate.GetCertKey("ca")
-	key, _ := x509.ParseECPrivateKey(caKey)
-	clientCert, _ := getStoredCert([]byte("issued"), ocspReq.SerialNumber.Bytes())
-	tpl := ocsp.Response{
-		Status:             ocsp.Good,
-		SerialNumber:       ocspReq.SerialNumber,
-		ProducedAt:         time.Time{},
-		ThisUpdate:         time.Time{},
-		NextUpdate:         time.Time{},
-		RevokedAt:          time.Time{},
-		RevocationReason:   0,
-		Certificate:        nil,
-		TBSResponseData:    nil,
-		Signature:          nil,
-		SignatureAlgorithm: 0,
-		IssuerHash:         0,
-		RawResponderName:   nil,
-		ResponderKeyHash:   nil,
-		Extensions:         nil,
-		ExtraExtensions:    nil,
+	reqData, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
-	respData, _ := ocsp.CreateResponse(caCert, clientCert, tpl, key)
+	ocspReq, err := ocsp.ParseRequest(reqData)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	p := r.Context().Value(contextTypePlugin).(coreTrustPlugin)
+
+	tpl := queryOCSP(p, ocspReq)
+
+	respData, err := ocsp.CreateResponse(p.caCert, tpl.Certificate, tpl, p.caSigner)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	_, _ = w.Write(respData)
 }
+
+func queryOCSP(ctx coreTrustPlugin, req *ocsp.Request) (resp ocsp.Response) {
+	resp = ocsp.Response{}
+	if req == nil {
+		resp.Status = ocsp.ServerFailed
+		return
+	}
+	db := ctx.authority.GetDatabase()
+	cert, err := db.GetCertificate(req.SerialNumber.String())
+	if err != nil {
+		resp.Status = ocsp.Unknown
+		return
+	}
+	resp.SerialNumber = req.SerialNumber
+	resp.Certificate = cert
+	resp.ThisUpdate = time.Now()
+	rvk, err := db.IsRevoked(req.SerialNumber.String())
+	if err != nil {
+		resp.Status = ocsp.ServerFailed
+		return
+	}
+	if rvk {
+		resp.Status = ocsp.Revoked
+		// todo: Revoke Reason and Revoke At
+		return
+	}
+	resp.NextUpdate = time.Now().Add(ctx.ocspDuration)
+	resp.Status = ocsp.Good
+	return
+}
+
 func QueryOCSP() (*ocsp.Response, error) {
 	client, err := getClientCert()
 	issuer, err := getStoredCert([]byte("my"), []byte("issuer"))
 	spew.Dump(err)
 	ocspReqContent, err := ocsp.CreateRequest(client, issuer, nil)
 	_, tlsClient, err := request.GetDefaultHTTPClient()
+	if err != nil {
+		return nil, err
+	}
 	resp, err := tlsClient.Post(issuer.OCSPServer[0], "application/ocsp-request", bytes.NewReader(ocspReqContent))
+	if err != nil {
+		return nil, err
+	}
 	ocspResp, err := ioutil.ReadAll(resp.Body)
 	return ocsp.ParseResponse(ocspResp, issuer)
 }
