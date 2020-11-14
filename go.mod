@@ -6,6 +6,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/lucas-clemente/quic-go v0.18.1
 	github.com/spf13/cobra v1.1.1
+	github.com/spf13/viper v1.7.0
 	go.etcd.io/bbolt v1.3.2
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
