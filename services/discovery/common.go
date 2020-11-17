@@ -5,7 +5,9 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/p2pNG/core"
 	"github.com/p2pNG/core/internal/logging"
+	"net"
 	"net/http"
+	"time"
 )
 
 type coreDiscoveryConfig struct {
@@ -63,4 +65,12 @@ func (p *coreDiscoveryPlugin) GetRouter() chi.Router {
 
 func init() {
 	core.RegisterRouterPlugin(&coreDiscoveryPlugin{})
+}
+
+// PeerInfo describes a p2pNG peer
+type PeerInfo struct {
+	Address  net.IP
+	Port     int
+	DNS      []string
+	LastSeen time.Time
 }
