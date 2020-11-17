@@ -69,6 +69,7 @@ func init() {
 
 // PeerInfo describes a p2pNG peer
 type PeerInfo struct {
+	//todo: Need to add
 	Address  net.IP
 	Port     int
 	DNS      []string

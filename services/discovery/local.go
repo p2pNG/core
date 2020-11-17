@@ -19,7 +19,7 @@ func LocalBroadcast(port int) (*mdns.Server, error) {
 
 // LocalScan send multicast udp packet and wait for response to discovery local peers
 func LocalScan() (rt []PeerInfo, err error) {
-	entriesCh := make(chan *mdns.ServiceEntry, 64)
+	entriesCh := make(chan *mdns.ServiceEntry)
 	go func() {
 		for x := range entriesCh {
 			rt = append(rt, PeerInfo{
