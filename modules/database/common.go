@@ -3,6 +3,7 @@ package database
 import (
 	"github.com/p2pNG/core/internal/utils"
 	bolt "go.etcd.io/bbolt"
+	"os"
 	"path"
 	"time"
 )
@@ -10,6 +11,10 @@ import (
 var defaultDBEngine *bolt.DB
 
 func openDB() (err error) {
+	err = os.MkdirAll(utils.AppDataDir(), 0755)
+	if err != nil {
+		return
+	}
 	dbPath := path.Join(utils.AppDataDir(), "database")
 	opts := bolt.DefaultOptions
 	opts.Timeout = time.Second * 5
