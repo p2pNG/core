@@ -8,6 +8,13 @@ import (
 	"net/http"
 )
 
+const (
+	SeedHashToPeerDB     = "SeedInfoHash-PeerInfo"
+	SeedHashToSeedDB     = "SeedInfoHash-SeedInfo"
+	FileInfoHashToPeerDB = "FileInfoHash-PeerInfo"
+	FileHashToPeerDB     = "FileHash-PeerInfo"
+)
+
 type coreStatusConfig struct {
 	BuildName string
 }
@@ -34,7 +41,7 @@ func (p *coreStatusPlugin) PluginInfo() *core.PluginInfo {
 		Name:    "github.com/p2pNG/core/services/status",
 		Version: "0.0.0",
 		Prefix:  "/status",
-		Buckets: []string{"test-bucket"},
+		Buckets: []string{SeedHashToPeerDB, SeedHashToSeedDB, FileInfoHashToPeerDB, FileHashToPeerDB},
 	}
 }
 
@@ -46,7 +53,11 @@ func (p *coreStatusPlugin) GetRouter() chi.Router {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
-	r.Get("/info", getNodeInfo)
+	r.Get("/node", getNodeStatus)
+	r.Get("/peer", getNodePeers)
+	r.Get("/seed", getNodeSeeds)
+	r.Get("/fileHash", getNodeFileHash)
+	r.Get("/fileInfoHash", getNodeFileInfoHash)
 	return r
 }
 
@@ -54,7 +65,7 @@ func init() {
 	core.RegisterRouterPlugin(&coreStatusPlugin{})
 }
 
-type NodeInfo struct {
+type nodeInfo struct {
 	Name      string
 	Version   string
 	BuildName string

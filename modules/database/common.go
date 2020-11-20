@@ -16,7 +16,8 @@ func openDB() (err error) {
 }
 
 // TODO: Declare in the plugin
-var defaultBuckets = []string{"file", "discovery_registry"}
+var defaultBuckets = []string{"file", "discovery_registry", "SeedInfoHash-PeerInfo",
+	"SeedInfoHash-SeedInfo", "FileInfoHash-PeerInfo", "FileHash-PeerInfo"}
 
 func initBuckets() (err error) {
 	if defaultDBEngine != nil {
