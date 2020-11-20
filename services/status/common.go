@@ -10,7 +10,6 @@ import (
 )
 
 // SeedHashToPeerDB 	Key=SeedHash,Value=PeerInfo
-// SeedHashToSeedDB 	Key=SeedHash,Value=SeedInfo
 // FileInfoHashToPeerDB Key=FileInfoHash,Value=PeerInfo
 // FileHashToPeerDB 	Key=FileHash,Value=PeerInfo
 const (
