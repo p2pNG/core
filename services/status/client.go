@@ -9,10 +9,15 @@ import (
 	"net/http"
 )
 
+func getRequestClient() (client *http.Client, err error) {
+	client, _, err = request.GetDefaultHTTPClient()
+	return
+}
+
 // exchangePeers query peers from discovered nodes and save
 func exchangePeers() error {
 	return visitPeers(func(node discovery.PeerInfo) error {
-		client, err := request.GetDefaultHttpClient()
+		client, err := getRequestClient()
 		if err != nil {
 			return err
 		}
@@ -46,7 +51,7 @@ func exchangePeers() error {
 // exchangeSeeds query SeedInfoHash list from discovered nodes and save
 func exchangeSeeds() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := request.GetDefaultHttpClient()
+		client, err := getRequestClient()
 		if err != nil {
 			return err
 		}
@@ -80,7 +85,7 @@ func exchangeSeeds() error {
 // exchangeFileInfoHash query FileInfoHash list from discovered nodes and save
 func exchangeFileInfoHash() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := request.GetDefaultHttpClient()
+		client, err := getRequestClient()
 		if err != nil {
 			return err
 		}
@@ -114,7 +119,7 @@ func exchangeFileInfoHash() error {
 // exchangeFileHash query FileHash list from discovered nodes and save
 func exchangeFileHash() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := request.GetDefaultHttpClient()
+		client, err := getRequestClient()
 		if err != nil {
 			return err
 		}
