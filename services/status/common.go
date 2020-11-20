@@ -15,7 +15,6 @@ import (
 // FileHashToPeerDB 	Key=FileHash,Value=PeerInfo
 const (
 	SeedHashToPeerDB     = "SeedInfoHash-PeerInfo"
-	SeedHashToSeedDB     = "SeedInfoHash-SeedInfo"
 	FileInfoHashToPeerDB = "FileInfoHash-PeerInfo"
 	FileHashToPeerDB     = "FileHash-PeerInfo"
 )
@@ -46,7 +45,7 @@ func (p *coreStatusPlugin) PluginInfo() *core.PluginInfo {
 		Name:    "github.com/p2pNG/core/services/status",
 		Version: "0.0.0",
 		Prefix:  "/status",
-		Buckets: []string{SeedHashToPeerDB, SeedHashToSeedDB, FileInfoHashToPeerDB, FileHashToPeerDB},
+		Buckets: []string{SeedHashToPeerDB, FileInfoHashToPeerDB, FileHashToPeerDB},
 	}
 }
 
