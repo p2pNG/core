@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+type contextType int
+
+const (
+	StatusContext contextType = iota
+)
+
 // FileInfo describes how to download a file
 type FileInfo struct {
 	Size        int64

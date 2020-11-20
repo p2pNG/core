@@ -58,12 +58,12 @@ func GetPeerBySeedHash(seedHash string) (peers []discovery.PeerInfo, err error) 
 		if buk == nil {
 			return errors.New("database error : bucket [" + SeedHashToPeerDB + "] does not exist")
 		}
-		peerMapJson := buk.Get([]byte(seedHash))
-		if peerMapJson == nil {
+		peerMapJSON := buk.Get([]byte(seedHash))
+		if peerMapJSON == nil {
 			err = errors.New("peerInfo not fond")
 		}
 		var peerMap map[string]discovery.PeerInfo
-		err := json.Unmarshal(peerMapJson, &peerMap)
+		err := json.Unmarshal(peerMapJSON, &peerMap)
 		if err != nil {
 			return err
 		}
@@ -123,12 +123,12 @@ func GetPeerByFileInfoHash(fileInfoHash string) (peers []discovery.PeerInfo, err
 		if buk == nil {
 			return errors.New("database error : bucket [" + FileInfoHashToPeerDB + "] does not exist")
 		}
-		peerMapJson := buk.Get([]byte(fileInfoHash))
-		if peerMapJson == nil {
+		peerMapJSON := buk.Get([]byte(fileInfoHash))
+		if peerMapJSON == nil {
 			err = errors.New("peerInfo not fond")
 		}
 		var peerMap map[string]discovery.PeerInfo
-		err := json.Unmarshal(peerMapJson, &peerMap)
+		err := json.Unmarshal(peerMapJSON, &peerMap)
 		if err != nil {
 			return err
 		}
@@ -188,12 +188,12 @@ func GetPeerByFileHash(fileHash string) (peers []discovery.PeerInfo, err error) 
 		if buk == nil {
 			return errors.New("database error : bucket [" + FileHashToPeerDB + "] does not exist")
 		}
-		peerMapJson := buk.Get([]byte(fileHash))
-		if peerMapJson == nil {
+		peerMapJSON := buk.Get([]byte(fileHash))
+		if peerMapJSON == nil {
 			err = errors.New("peerInfo not fond")
 		}
 		var peerMap map[string]discovery.PeerInfo
-		err := json.Unmarshal(peerMapJson, &peerMap)
+		err := json.Unmarshal(peerMapJSON, &peerMap)
 		if err != nil {
 			return err
 		}

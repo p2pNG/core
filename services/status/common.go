@@ -5,9 +5,14 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/p2pNG/core"
 	"github.com/p2pNG/core/internal/logging"
+	"github.com/p2pNG/core/services"
 	"net/http"
 )
 
+// SeedHashToPeerDB 	Key=SeedHash,Value=PeerInfo
+// SeedHashToSeedDB 	Key=SeedHash,Value=SeedInfo
+// FileInfoHashToPeerDB Key=FileInfoHash,Value=PeerInfo
+// FileHashToPeerDB 	Key=FileHash,Value=PeerInfo
 const (
 	SeedHashToPeerDB     = "SeedInfoHash-PeerInfo"
 	SeedHashToSeedDB     = "SeedInfoHash-SeedInfo"
@@ -49,7 +54,7 @@ func (p *coreStatusPlugin) GetRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), "statusCtx", coreStatusContext{Config: p.config})
+			ctx := context.WithValue(r.Context(), services.StatusContext, coreStatusContext{Config: p.config})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
