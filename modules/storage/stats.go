@@ -1,89 +1,90 @@
 package storage
 
-// DefaultFileBlockSize is used for the default parameter to split a file to several blocks
-//todo: May Declare in elsewhere
-const DefaultFileBlockSize = 4 * 1024 * 1024
+import (
+	"crypto/sha512"
+	"encoding/base64"
+	"errors"
+	"io"
+	"os"
+)
 
 // StatLocalFile return the LocalFileInfo for a file in the disk
-//func StatLocalFile(filepath string, blockSize int64) (lf *LocalFileInfo, err error) {
-//	stat, err := os.Stat(filepath)
-//	if err != nil {
-//		return
-//	}
-//	if stat.IsDir() {
-//		err = errors.New("not a valid file")
-//		return
-//	}
-//	fi, err := StatFile(filepath, blockSize)
-//	if err != nil {
-//		return
-//	}
-//
-//	lf = new(LocalFileInfo)
-//	lf.FileInfo = *fi
-//	lf.LastModify = stat.ModTime()
-//	lf.Path = filepath
-//	return
-//}
+func StatLocalFile(filepath string) (lf *LocalFileInfo, err error) {
+	stat, err := os.Stat(filepath)
+	if err != nil {
+		return
+	}
+	if stat.IsDir() {
+		err = errors.New("not a valid file")
+		return
+	}
+
+	return &LocalFileInfo{
+		LastModify: stat.ModTime(),
+		Path:       filepath,
+	}, nil
+}
 
 // StatFile return the FileInfo for a file in the disk
-//func StatFile(filepath string, pieceLength int64) (fi *FileInfo, err error) {
-//	//todo: calling should be revered, while LocalFileInfo including full os.FileInfo
-//	if pieceLength <= 1024*1024 {
-//		pieceLength = DefaultFileBlockSize
-//	}
-//
-//	stat, err := os.Stat(filepath)
-//	if err != nil {
-//		return
-//	}
-//	if stat.IsDir() {
-//		err = errors.New("not a valid file")
-//		return
-//	}
-//	fi = new(FileInfo)
-//	fi.PieceLength = pieceLength
-//	fi.Hash, fi.Size = stat.Name(), stat.Size()
-//
-//	f, err := os.Open(filepath)
-//	if err != nil {
-//		return
-//	}
-//	buf := make([]byte, pieceLength)
-//	fileSum := sha512.New()
-//	blockHash := sha512.New512_256()
-//	flagTail := false
-//	var n int
-//
-//	for {
-//		n, err = f.Read(buf)
-//		if err != nil {
-//			if err == io.EOF {
-//				break
-//			} else {
-//				return
-//			}
-//		}
-//		if int64(n) != pieceLength {
-//			flagTail = true
-//			break
-//		}
-//
-//		_, _ = fileSum.Write(buf)
-//		blockHash.Reset()
-//		_, _ = blockHash.Write(buf)
-//		fi.BlockHash = append(fi.BlockHash, blockHash.Sum(nil))
-//	}
-//	if flagTail {
-//		if int64(len(fi.BlockHash))*pieceLength+int64(n) != fi.Size {
-//			err = errors.New("read file error, length not matched")
-//			return
-//		}
-//		_, _ = fileSum.Write(buf)
-//		blockHash.Reset()
-//		_, _ = blockHash.Write(buf)
-//		fi.BlockHash = append(fi.BlockHash, blockHash.Sum(nil))
-//	}
-//	fi.Hash = fileSum.Sum(nil)
-//	return fi, nil
-//}
+func StatFile(filepath string, pieceLength int64) (fileInfo *FileInfo, err error) {
+
+	if pieceLength <= MinFilePieceLength {
+		pieceLength = DefaultFilePieceLength
+	}
+
+	stat, err := os.Stat(filepath)
+	if err != nil {
+		return
+	}
+	if stat.IsDir() {
+		err = errors.New("not a valid file")
+		return
+	}
+	file, err := os.Open(filepath)
+	if err != nil {
+		return
+	}
+
+	pieceBuf := make([]byte, pieceLength)
+	fileHash := sha512.New()
+	var pieceHashList []string
+	lastPieceLength := 0
+	for {
+		n, err := file.Read(pieceBuf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				return nil, err
+			}
+		}
+
+		if int64(n) != pieceLength {
+			lastPieceLength = n
+		}
+
+		_, err = fileHash.Write(pieceBuf)
+		if err != nil {
+			return nil, err
+		}
+
+		if pieceHash, err := HashFilePieceInBytes(pieceBuf); err != nil {
+			pieceHashList = append(pieceHashList, pieceHash)
+		} else {
+			return nil, err
+		}
+	}
+
+	// check file length
+	if stat.Size() != int64(len(pieceHashList))*pieceLength+int64(lastPieceLength) {
+		err = errors.New("read file error, length not matched")
+		return
+	}
+
+	return &FileInfo{
+		Size:        stat.Size(),
+		Hash:        base64.URLEncoding.EncodeToString(fileHash.Sum(nil)),
+		PieceLength: pieceLength,
+		PieceHash:   pieceHashList,
+	}, nil
+}
