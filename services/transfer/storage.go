@@ -27,6 +27,7 @@ func GetFileHashList() (fileHashList []string, err error) {
 // GetSeedInfo returns SeedInfo that matches seedInfoHash
 func GetSeedInfo(seedInfoHash string) (seed storage.SeedInfo, err error) {
 	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
 	if err != nil {
 		return
 	}
@@ -47,6 +48,7 @@ func GetSeedInfo(seedInfoHash string) (seed storage.SeedInfo, err error) {
 // GetFileInfoByFileInfoHash returns FileInfo that matches fileInfoHash
 func GetFileInfoByFileInfoHash(fileInfoHash string) (file storage.FileInfo, err error) {
 	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
 	if err != nil {
 		return
 	}
@@ -67,6 +69,7 @@ func GetFileInfoByFileInfoHash(fileInfoHash string) (file storage.FileInfo, err 
 // GetFileInfoByFileHash returns FileInfo that matches fileHash
 func GetFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error) {
 	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
 	if err != nil {
 		return
 	}
@@ -95,6 +98,7 @@ func GetFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error
 // SaveSeedInfo save SeedInfo to SeedHashToSeedDB
 func SaveSeedInfo(seed storage.SeedInfo) error {
 	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
 	if err != nil {
 		return err
 	}
@@ -115,6 +119,7 @@ func SaveSeedInfo(seed storage.SeedInfo) error {
 // SaveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB
 func SaveFileInfo(file storage.FileInfo) error {
 	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
 	if err != nil {
 		return err
 	}

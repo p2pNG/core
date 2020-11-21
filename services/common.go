@@ -30,6 +30,7 @@ func WriteRespDataAsJson(w http.ResponseWriter, data interface{}) {
 // GetAllKeyFromBucket get all keys from specified bucket
 func GetAllKeyFromBucket(bucket string) (keys []string, err error) {
 	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
 	if err != nil {
 		return nil, err
 	}
