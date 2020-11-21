@@ -61,7 +61,7 @@ func (p *coreTransferPlugin) GetRouter() chi.Router {
 	r.Get("/seed/{seedInfoHash}", getSeedInfo)
 	r.Get("/file/fileInfoHash/{fileInfoHash}", getFileInfoByFileInfoHash)
 	r.Get("/file/fileHash/{fileHash}", getFileInfoByFileHash)
-	r.Get("/transfer/piece/{pieceIndex}", getFilePiece)
+	r.Get("/piece/{pieceIndex}", getFilePiece)
 	return r
 }
 
