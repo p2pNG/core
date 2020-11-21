@@ -9,7 +9,6 @@ import (
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/listener"
 	"github.com/spf13/cobra"
-	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -34,6 +33,7 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 	if err != nil {
 		logging.Log().Fatal("init database error", zap.Error(err))
 	}
+	defer database.CloseDBEngine()
 
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
@@ -58,17 +58,8 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 
 		router.Mount(info.Prefix, plugin.GetRouter())
 
-		err = db.Update(func(tx *bolt.Tx) error {
-			for _, buk := range info.Buckets {
-				_, err := tx.CreateBucketIfNotExists([]byte(buk))
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			logging.Log().Fatal("init database bucket failed", zap.Error(err), zap.String("plugin", info.Name))
+		if err = database.InitBuckets(db, info.Buckets); err != nil {
+			logging.Log().Fatal("init buckets in database failed", zap.Error(err), zap.String("plugin", info.Name))
 		}
 	}
 	go func() {
