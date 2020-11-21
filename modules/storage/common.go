@@ -1,17 +1,15 @@
 package storage
 
 import (
-	"crypto/sha512"
-	"encoding/base64"
-	"errors"
-	"io"
-	"os"
-	"strconv"
 	"time"
 )
 
+// DefaultFilePieceLength used for the default parameter to split a file to several blocks
+// MinFilePieceLength used for the min parameter to split a file to several blocks
 const (
-	separator = ":"
+	separator              = ":"
+	DefaultFilePieceLength = 4 * 1024 * 1024
+	MinFilePieceLength     = 1024 * 1024
 )
 
 // FileInfo describes how to download a file
@@ -44,58 +42,4 @@ type SeedInfo struct {
 type LocalFileInfo struct {
 	Path       string
 	LastModify time.Time
-}
-
-// HashSeedInfo returns hash of SeedInfo content
-func HashSeedInfo(seedInfo SeedInfo) (seedInfoHash string) {
-	var seedInfoContent []byte
-	seedInfoContent = append([]byte(seedInfo.Title + separator))
-	if seedInfo.ExtraInfo != nil {
-		for k, v := range seedInfo.ExtraInfo {
-			seedInfoContent = append(seedInfoContent, []byte(k+separator+v+separator)...)
-		}
-	}
-	if seedInfo.Files != nil {
-		// append each SeedFileItem
-		for _, v := range seedInfo.Files {
-			var seedFileItemContent []byte
-			seedFileItemContent = append([]byte(v.Hash + separator))
-			seedFileItemContent = append(seedFileItemContent, []byte(strconv.Itoa(int(v.Size))+separator)...)
-			seedFileItemContent = append(seedFileItemContent, []byte(v.Path+separator)...)
-			seedFileItemContent = append(seedFileItemContent, []byte(strconv.Itoa(int(v.RecPieceLength))+separator)...)
-			seedFileItemContent = append(seedFileItemContent, []byte(v.RecFileInfoHash+separator)...)
-			seedInfoContent = append(seedInfoContent, []byte(string(seedFileItemContent)+separator)...)
-		}
-	}
-	sum := sha512.New().Sum(seedInfoContent)
-	return base64.URLEncoding.EncodeToString(sum)
-}
-
-// HashFileInfo returns hash of FileInfo content
-func HashFileInfo(fileInfo FileInfo) (fileInfoHash string) {
-	var fileInfoContent []byte
-	fileInfoContent = append(fileInfoContent, []byte(strconv.Itoa(int(fileInfo.Size))+separator)...)
-	fileInfoContent = append(fileInfoContent, []byte(fileInfo.Hash+separator)...)
-	if fileInfo.PieceHash != nil {
-		for _, pieceHash := range fileInfo.PieceHash {
-			fileInfoContent = append(fileInfoContent, []byte(pieceHash+separator)...)
-		}
-	}
-	fileInfoContent = append(fileInfoContent, []byte(strconv.Itoa(int(fileInfo.PieceLength))+separator)...)
-	sum := sha512.New().Sum(fileInfoContent)
-	return base64.URLEncoding.EncodeToString(sum)
-}
-
-// HashFile returns hash of File content
-func HashFile(file *os.File) (fileHash string, err error) {
-	if file == nil {
-		err = errors.New("could not hash a nil file")
-		return
-	}
-	hash := sha512.New()
-	if _, err = io.Copy(hash, file); err != nil {
-		return
-	}
-	sum := hash.Sum(nil)
-	return base64.URLEncoding.EncodeToString(sum), nil
 }
