@@ -67,7 +67,8 @@ func HashSeedInfo(seedInfo SeedInfo) (seedInfoHash string) {
 			seedInfoContent = append(seedInfoContent, []byte(string(seedFileItemContent)+separator)...)
 		}
 	}
-	return base64.StdEncoding.EncodeToString(sha512.New().Sum(seedInfoContent))
+	sum := sha512.New().Sum(seedInfoContent)
+	return base64.URLEncoding.EncodeToString(sum)
 }
 
 // HashFileInfo returns hash of FileInfo content
@@ -81,18 +82,20 @@ func HashFileInfo(fileInfo FileInfo) (fileInfoHash string) {
 		}
 	}
 	fileInfoContent = append(fileInfoContent, []byte(strconv.Itoa(int(fileInfo.PieceLength))+separator)...)
-	return base64.StdEncoding.EncodeToString(sha512.New().Sum(fileInfoContent))
+	sum := sha512.New().Sum(fileInfoContent)
+	return base64.URLEncoding.EncodeToString(sum)
 }
 
 // HashFile returns hash of File content
 func HashFile(file *os.File) (fileHash string, err error) {
 	if file == nil {
-		return "", errors.New("could not hash a nil file")
+		err = errors.New("could not hash a nil file")
+		return
 	}
 	hash := sha512.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", err
+	if _, err = io.Copy(hash, file); err != nil {
+		return
 	}
 	sum := hash.Sum(nil)
-	return base64.StdEncoding.EncodeToString(sum), nil
+	return base64.URLEncoding.EncodeToString(sum), nil
 }
