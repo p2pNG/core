@@ -20,6 +20,7 @@ import (
 import (
 	// Services should import by core-builder, this is temporary solution
 	_ "github.com/p2pNG/core/services/status"
+	_ "github.com/p2pNG/core/services/transfer"
 )
 
 var commandRun = &cobra.Command{

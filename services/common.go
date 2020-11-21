@@ -2,6 +2,9 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/p2pNG/core/modules/database"
+	bolt "go.etcd.io/bbolt"
 	"net/http"
 )
 
@@ -22,4 +25,24 @@ func WriteRespDataAsJson(w http.ResponseWriter, data interface{}) {
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// GetAllKeyFromBucket get all keys from specified bucket
+func GetAllKeyFromBucket(bucket string) (keys []string, err error) {
+	db, err := database.GetDBEngine()
+	if err != nil {
+		return nil, err
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(bucket))
+		if buk == nil {
+			return errors.New("database error : bucket [" + bucket + "] does not exist")
+		}
+		err = buk.ForEach(func(k, v []byte) error {
+			keys = append(keys, string(k))
+			return nil
+		})
+		return err
+	})
+	return
 }
