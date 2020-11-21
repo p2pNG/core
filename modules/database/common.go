@@ -1,21 +1,24 @@
 package database
 
 import (
+	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/internal/utils"
 	bolt "go.etcd.io/bbolt"
 	"os"
+	"go.uber.org/zap"
 	"path"
 	"time"
 )
 
 var defaultDBEngine *bolt.DB
 
-func openDB() (err error) {
+// OpenDB open or create a DB engine
+func OpenDB(filename string) (err error) {
 	err = os.MkdirAll(utils.AppDataDir(), 0755)
 	if err != nil {
 		return
 	}
-	dbPath := path.Join(utils.AppDataDir(), "database")
+	dbPath := path.Join(utils.AppDataDir(), filename)
 	opts := bolt.DefaultOptions
 	opts.Timeout = time.Second * 5
 	defaultDBEngine, err = bolt.Open(dbPath, 0644, opts)
@@ -25,15 +28,30 @@ func openDB() (err error) {
 // GetDBEngine return the default DB Engine; if it is not opened, it will try open
 func GetDBEngine() (engine *bolt.DB, err error) {
 	if defaultDBEngine == nil {
-		err = openDB()
+		err = OpenDB("database")
 	}
 	engine = defaultDBEngine
 	return
 }
 
+// InitBuckets is a helper func to create some buckets in the opened DB
+func InitBuckets(db *bolt.DB, buk []string) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		for _, buk := range buk {
+			_, err := tx.CreateBucketIfNotExists([]byte(buk))
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 // CloseDBEngine close the default DB Engine
 func CloseDBEngine() {
 	if defaultDBEngine != nil {
-		_ = defaultDBEngine.Close()
+		if err := defaultDBEngine.Close(); err != nil {
+			logging.Log().Error("close database failed", zap.Error(err))
+		}
 	}
 }
