@@ -6,7 +6,9 @@ import (
 	"github.com/p2pNG/core"
 	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/services"
+	"github.com/p2pNG/core/services/discovery"
 	"net/http"
+	"strconv"
 )
 
 // SeedHashToPeerDB 	Key=SeedHash,Value=PeerInfo
@@ -72,4 +74,9 @@ type nodeInfo struct {
 	Name      string
 	Version   string
 	BuildName string
+}
+
+// getPeerKey returns PeerInfo's key used in database
+func getPeerKey(peer discovery.PeerInfo) (peerKey string) {
+	return peer.Address.String() + ":" + strconv.Itoa(peer.Port)
 }

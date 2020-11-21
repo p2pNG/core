@@ -1,13 +1,11 @@
 package status
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/services/discovery"
 	bolt "go.etcd.io/bbolt"
-	"strconv"
 )
 
 // SaveSeedInfoHash to save SeedInfoHash list
@@ -33,9 +31,9 @@ func SaveSeedInfoHash(seedHashList []string, peer discovery.PeerInfo) (err error
 				}
 			}
 
-			peerHash := md5.New().Sum([]byte(peer.Address.String() + strconv.Itoa(peer.Port)))
-			if _, ok := peers[string(peerHash)]; !ok {
-				peers[string(peerHash)] = peer
+			peerKey := getPeerKey(peer)
+			if _, ok := peers[peerKey]; !ok {
+				peers[peerKey] = peer
 				jsonData, err := json.Marshal(peers)
 				if err != nil {
 					return err
@@ -98,9 +96,9 @@ func SaveFileInfoHash(fileInfoHashList []string, peer discovery.PeerInfo) (err e
 				}
 			}
 
-			peerHash := md5.New().Sum([]byte(peer.Address.String() + strconv.Itoa(peer.Port)))
-			if _, ok := peers[string(peerHash)]; !ok {
-				peers[string(peerHash)] = peer
+			peerKey := getPeerKey(peer)
+			if _, ok := peers[peerKey]; !ok {
+				peers[peerKey] = peer
 				jsonData, err := json.Marshal(peers)
 				if err != nil {
 					return err
@@ -163,9 +161,9 @@ func SaveFileHash(fileHashList []string, peer discovery.PeerInfo) (err error) {
 				}
 			}
 
-			peerHash := md5.New().Sum([]byte(peer.Address.String() + strconv.Itoa(peer.Port)))
-			if _, ok := peers[string(peerHash)]; !ok {
-				peers[string(peerHash)] = peer
+			peerKey := getPeerKey(peer)
+			if _, ok := peers[peerKey]; !ok {
+				peers[peerKey] = peer
 				jsonData, err := json.Marshal(peers)
 				if err != nil {
 					return err
