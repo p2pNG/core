@@ -2,6 +2,7 @@ package commands
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/p2pNG/core"
@@ -9,6 +10,7 @@ import (
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/listener"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"os"
@@ -29,7 +31,6 @@ var commandRun = &cobra.Command{
 }
 
 func commandRunExec(_ *cobra.Command, _ []string) {
-
 	db, err := database.GetDBEngine()
 	if err != nil {
 		logging.Log().Fatal("init database error", zap.Error(err))
@@ -72,7 +73,28 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 		}
 	}
 	go func() {
-		err = listener.ListenBoth(router, ":6480")
+		l := "6443"
+		b := "bootstrap-peer.p2png.org"
+
+		if fmt.Sprintf("%d", httpListen) != "0" {
+			l = fmt.Sprintf("%d", httpListen)
+		}
+		if viper.GetString("http-listen") != "0" {
+			l = viper.GetString("http-listen")
+		}
+
+		if fmt.Sprintf("%s", bootstrapPeer) != "" {
+			b = fmt.Sprintf("%s", bootstrapPeer)
+		}
+		if viper.GetString("bootstrap-peer") != "" {
+			b = viper.GetString("bootstrap-peer")
+		}
+
+		err = listener.ListenBoth(router, ":"+l)
+		if err != nil {
+			logging.Log().Fatal("start http service failed", zap.Error(err))
+		}
+		err = listener.ListenBoth(router, b)
 		if err != nil {
 			logging.Log().Fatal("start http service failed", zap.Error(err))
 		}

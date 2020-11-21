@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	cfgFile        string
-	httpListenPort string
-	bootstrapPeer  string
+	cfgFile       string
+	httpListen    uint16
+	bootstrapPeer string
 
 	rootCmd = &cobra.Command{
 		Use:     "p2pNG",
@@ -28,20 +28,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file")
-	clientCmd.Flags().StringVarP(&httpListenPort, "httpListenPort", "l", "", "")
-	clientCmd.Flags().StringVarP(&bootstrapPeer, "bootstrapPeer", "b", "", "???")
+	commandRun.Flags().Uint16VarP(&httpListen, "http-listen", "l", 0, "")
+	commandRun.Flags().StringVarP(&bootstrapPeer, "bootstrap-peer", "b", "", "???")
 
-	err := viper.BindPFlag("httpListenPort", clientCmd.PersistentFlags().Lookup("httpListenPort"))
-	if err != nil {
-
-	}
-	err = viper.BindPFlag("bootstrapPeer", clientCmd.PersistentFlags().Lookup("bootstrapPeer"))
-	if err != nil {
-
-	}
 	//rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(commandRun)
-	//rootCmd.AddCommand(clientCmd)
 }
 
 func initConfig() {
@@ -52,7 +43,7 @@ func initConfig() {
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Errorf("error config file: %s \n", err)
+		fmt.Printf("error config file: %s \n\n", err)
 	}
 }
 

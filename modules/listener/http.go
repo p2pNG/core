@@ -18,21 +18,21 @@ func getServerCertAndKey() (cert, key string) {
 	return
 }
 
-// ListenBoth bootstrap the router and serve on both udp and tcp
+// ListenBoth boot the router and serve on both udp and tcp
 func ListenBoth(r chi.Router, addr string) error {
 	cert, key := getServerCertAndKey()
 	//todo: dealing these errors
 	return http3.ListenAndServe(addr, cert, key, r)
 }
 
-// ListenQUIC bootstrap the router and serve on udp
+// ListenQUIC boot the router and serve on udp
 func ListenQUIC(r chi.Router, addr string) error {
 	cert, key := getServerCertAndKey()
 	//todo: dealing these errors
 	return http3.ListenAndServeQUIC(addr, cert, key, r)
 }
 
-// ListenTLS bootstrap the router and serve on tcp
+// ListenTLS boot the router and serve on tcp
 func ListenTLS(r chi.Router, addr string) error {
 	cert, key := getServerCertAndKey()
 	//todo: dealing these errors
