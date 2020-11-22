@@ -4,6 +4,7 @@ import (
 	"github.com/p2pNG/core/modules/storage"
 	"reflect"
 	"testing"
+	"time"
 )
 
 var testFileInfo = storage.FileInfo{
@@ -29,6 +30,12 @@ var testSeedInfo = storage.SeedInfo{
 	},
 	ExtraInfo: nil,
 	WellKnown: nil,
+}
+
+var testLocalFileInfo = storage.LocalFileInfo{
+	LastModify: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
+	Path:       "F:\\www\\TestSeed\\TestFile.txt",
+	FileInfo:   testFileInfo,
 }
 
 var testFileInfoHash = storage.HashFileInfo(testFileInfo)
@@ -267,6 +274,67 @@ func TestGetFileInfoHashList(t *testing.T) {
 			}
 			if !reflect.DeepEqual(gotFileInfoHashList, tt.wantFileInfoHashList) {
 				t.Errorf("GetFileInfoHashList() gotFileInfoHashList = %v, want %v", gotFileInfoHashList, tt.wantFileInfoHashList)
+			}
+		})
+	}
+}
+
+func TestSaveLocalFileInfo(t *testing.T) {
+	type args struct {
+		fileInfoHash  string
+		localFileInfo storage.LocalFileInfo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "TestSaveLocalFileInfo",
+			args: args{
+				fileInfoHash:  testFileInfoHash,
+				localFileInfo: testLocalFileInfo,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := SaveLocalFileInfo(tt.args.fileInfoHash, tt.args.localFileInfo); (err != nil) != tt.wantErr {
+				t.Errorf("SaveLocalFileInfo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestGetLocalFileInfoByFileInfoHash(t *testing.T) {
+	type args struct {
+		fileInfoHash string
+	}
+	tests := []struct {
+		name              string
+		args              args
+		wantLocalFileInfo storage.LocalFileInfo
+		wantErr           bool
+	}{
+		{
+			name: "TestGetLocalFileInfoByFileInfoHash",
+			args: args{
+				fileInfoHash: testFileInfoHash,
+			},
+			wantLocalFileInfo: testLocalFileInfo,
+			wantErr:           false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLocalFileInfo, err := GetLocalFileInfoByFileInfoHash(tt.args.fileInfoHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetLocalFileInfoByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotLocalFileInfo, tt.wantLocalFileInfo) {
+				t.Errorf("GetLocalFileInfoByFileInfoHash() gotLocalFileInfo = %v, want %v", gotLocalFileInfo, tt.wantLocalFileInfo)
 			}
 		})
 	}

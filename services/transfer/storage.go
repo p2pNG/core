@@ -167,3 +167,47 @@ func SaveFileInfo(file storage.FileInfo) error {
 		return nil
 	})
 }
+
+// SaveLocalFileInfo save LocalFileInfo to FileInfoHashToLocalFileDB
+func SaveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo) error {
+	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
+	if err != nil {
+		return err
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(FileInfoHashToLocalFileDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + FileInfoHashToLocalFileDB + "] does not exist")
+		}
+		jsonData, err := json.Marshal(localFileInfo)
+		if err != nil {
+			return err
+		}
+		return buk.Put([]byte(fileInfoHash), jsonData)
+	})
+}
+
+// GetLocalFileInfoByFileInfoHash returns LocalFileInfo that matches fileHash
+func GetLocalFileInfoByFileInfoHash(fileInfoHash string) (localFileInfo storage.LocalFileInfo, err error) {
+	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
+	if err != nil {
+		return
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(FileInfoHashToLocalFileDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + FileInfoHashToLocalFileDB + "] does not exist")
+		}
+
+		if localFileInfoJSON := buk.Get([]byte(fileInfoHash)); localFileInfoJSON != nil {
+			err = json.Unmarshal(localFileInfoJSON, &localFileInfo)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return
+}
