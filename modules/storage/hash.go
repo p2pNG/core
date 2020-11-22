@@ -74,8 +74,8 @@ func HashFile(filePath string) (fileHash string, err error) {
 	if stat, err := os.Stat(filePath); err != nil {
 		content := make([]byte, stat.Size())
 		_, err = file.Read(content)
-		if err == nil {
-			return
+		if err != nil {
+			return "", nil
 		}
 		return HashFileInBytes(content)
 	}

@@ -9,7 +9,8 @@ import (
 )
 
 // StatLocalFile return the LocalFileInfo for a file in the disk
-func StatLocalFile(filepath string) (lf *LocalFileInfo, err error) {
+func StatLocalFile(filepath string, pieceLength int64) (lf *LocalFileInfo, err error) {
+	// todo: merge StatFile function
 	stat, err := os.Stat(filepath)
 	if err != nil {
 		return
@@ -18,10 +19,14 @@ func StatLocalFile(filepath string) (lf *LocalFileInfo, err error) {
 		err = errors.New("not a valid file")
 		return
 	}
-
+	fileInfo, err := StatFile(filepath, pieceLength)
+	if err != nil {
+		return nil, err
+	}
 	return &LocalFileInfo{
 		LastModify: stat.ModTime(),
 		Path:       filepath,
+		FileInfo:   *fileInfo,
 	}, nil
 }
 

@@ -40,6 +40,7 @@ type SeedInfo struct {
 
 // LocalFileInfo describes a local file’ path and last modified time
 type LocalFileInfo struct {
+	FileInfo
 	Path       string
 	LastModify time.Time
 }
