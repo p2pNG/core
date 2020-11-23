@@ -10,20 +10,20 @@ import (
 
 // getNodeStatus returns the NodeInfo of current node
 func getNodeStatus(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context().Value("statusCtx").(coreStatusContext)
+	ctx := r.Context().Value(services.StatusContext).(coreStatusContext)
 	node := nodeInfo{
 		Name:      utils.GetHostname(),
 		Version:   core.GoModule().Version,
 		BuildName: ctx.Config.BuildName,
 	}
-	services.WriteRespDataAsJson(w, &node)
+	services.WriteRespDataAsJSON(w, &node)
 }
 
 // getNodePeers returns the peers of current node
 func getNodePeers(w http.ResponseWriter, r *http.Request) {
 	peers, err := discovery.GetPeerRegistry()
 	if err == nil {
-		services.WriteRespDataAsJson(w, &peers)
+		services.WriteRespDataAsJSON(w, &peers)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
