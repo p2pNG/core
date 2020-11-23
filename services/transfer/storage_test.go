@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 		logging.Log().Error("db err", zap.Error(err))
 		panic(err)
 	}
-	err = database.InitBuckets(db, []string{services.SeedHashToSeedDB, services.FileInfoHashToFileDB, services.FileHashToFileDB, services.FileInfoHashToLocalFileDB, "discovery_registry"})
+	err = database.InitBuckets(db, services.DataBaseBuckets)
 	if err != nil {
 		logging.Log().Error("db err", zap.Error(err))
 		panic(err)
