@@ -5,6 +5,7 @@ import (
 	"github.com/p2pNG/core/internal/utils"
 	"github.com/p2pNG/core/services"
 	"github.com/p2pNG/core/services/discovery"
+	"github.com/p2pNG/core/services/transfer"
 	"net/http"
 )
 
@@ -31,15 +32,30 @@ func getNodePeers(w http.ResponseWriter, r *http.Request) {
 
 // getNodeSeeds returns the SeedInfo list of current node
 func getNodeSeeds(w http.ResponseWriter, r *http.Request) {
-	// todo:return seed list
+	seedHashList, err := transfer.GetSeedInfoHashList()
+	if err != nil {
+		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
+	} else {
+		services.WriteRespDataAsJSON(w, seedHashList)
+	}
 }
 
 // getNodeFileHash returns the FileHash list of current node
 func getNodeFileHash(w http.ResponseWriter, r *http.Request) {
-	// todo:return file list
+	fileHashList, err := transfer.GetFileHashList()
+	if err != nil {
+		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
+	} else {
+		services.WriteRespDataAsJSON(w, fileHashList)
+	}
 }
 
 // getNodeFileInfoHash returns the FileInfoHash list of current node
 func getNodeFileInfoHash(w http.ResponseWriter, r *http.Request) {
-	// todo:return file list
+	fileInfoHashList, err := transfer.GetFileInfoHashList()
+	if err != nil {
+		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
+	} else {
+		services.WriteRespDataAsJSON(w, fileInfoHashList)
+	}
 }
