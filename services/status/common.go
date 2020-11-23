@@ -38,7 +38,7 @@ func (p *coreStatusPlugin) PluginInfo() *core.PluginInfo {
 		Version: "0.0.0",
 		Prefix:  "/status",
 		Buckets: []string{services.SeedHashToPeerDB, services.FileInfoHashToPeerDB,
-			services.FileHashToPeerDB, services.FileHashToPeerPieceDB},
+			services.FileHashToPeerDB, services.FileInfoHashToPeerPieceDB},
 	}
 }
 

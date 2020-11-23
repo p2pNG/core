@@ -47,7 +47,7 @@ func (p *coreTransferPlugin) GetRouter() chi.Router {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
-	r.Get("/seedInfoHash/{seedInfoHash}", serverGetSeedInfo)
+	r.Get("/seedInfo/{seedInfoHash}", serverGetSeedInfo)
 	r.Get("/fileInfo/fileInfoHash/{fileInfoHash}", serverGetFileInfoByFileInfoHash)
 	r.Get("/fileInfo/fileHash/{fileHash}", serverGetFileInfoByFileHash)
 	r.Get("/file/fileInfoHash/{fileInfoHash}/piece/{pieceIndex}/", serverGetFilePiece)

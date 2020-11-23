@@ -81,7 +81,7 @@ var TestPeerPieceInfo = PeerPieceInfo{
 }
 
 var TestPPInfoList = map[string]PeerPieceInfo{
-	TestFileHash: TestPeerPieceInfo,
+	TestFileInfoHash: TestPeerPieceInfo,
 }
 
 func getTestPiece() []byte {

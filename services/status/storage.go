@@ -146,13 +146,13 @@ func savePeerPieceInfoList(ppInfoList map[string]storage.PeerPieceInfo) (err err
 		return
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerPieceDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerPieceDB + "] does not exist")
 		}
-		for fileHash, ppInfo := range ppInfoList {
+		for fileInfoHash, ppInfo := range ppInfoList {
 			var savedPPInfo = make(storage.PeerPieceInfo)
-			resp := buk.Get([]byte(fileHash))
+			resp := buk.Get([]byte(fileInfoHash))
 			if resp != nil {
 				err = json.Unmarshal(resp, &savedPPInfo)
 				if err != nil {
@@ -167,7 +167,7 @@ func savePeerPieceInfoList(ppInfoList map[string]storage.PeerPieceInfo) (err err
 			if err != nil {
 				return err
 			}
-			return buk.Put([]byte(fileHash), jsonData)
+			return buk.Put([]byte(fileInfoHash), jsonData)
 		}
 		return nil
 	})
@@ -179,9 +179,9 @@ func getPeerPieceInfoList() (ppInfoList map[string]storage.PeerPieceInfo, err er
 		return nil, err
 	}
 	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerPieceDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerPieceDB + "] does not exist")
 		}
 		ppInfoList = make(map[string]storage.PeerPieceInfo)
 		err = buk.ForEach(func(k, v []byte) error {

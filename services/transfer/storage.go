@@ -172,7 +172,7 @@ func saveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo)
 	})
 }
 
-// getLocalFileInfoByFileInfoHash returns LocalFileInfo that matches fileHash
+// getLocalFileInfoByFileInfoHash returns LocalFileInfo that matches fileInfoHash
 func getLocalFileInfoByFileInfoHash(fileInfoHash string) (localFileInfo storage.LocalFileInfo, err error) {
 	db, err := database.GetDBEngine()
 
@@ -283,36 +283,36 @@ func getPeerByFileHash(fileHash string) (peers []discovery.PeerInfo, err error) 
 	return
 }
 
-func getPeerPieceInfoByFileHash(fileHash string) (ppInfo storage.PeerPieceInfo, err error) {
+func getPeerPieceInfoByFileInfoHash(fileInfoHash string) (ppInfo storage.PeerPieceInfo, err error) {
 	db, err := database.GetDBEngine()
 	if err != nil {
 		return nil, err
 	}
 	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerPieceDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerPieceDB + "] does not exist")
 		}
 		ppInfo = make(storage.PeerPieceInfo)
-		jsonData := buk.Get([]byte(fileHash))
+		jsonData := buk.Get([]byte(fileInfoHash))
 		return json.Unmarshal(jsonData, &ppInfo)
 	})
 	return
 }
 
-func savePeerPieceInfo(fileHash string, ppInfo storage.PeerPieceInfo) (err error) {
+func savePeerPieceInfo(fileInfoHash string, ppInfo storage.PeerPieceInfo) (err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerPieceDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerPieceDB + "] does not exist")
 		}
 		var savedPPInfo = make(storage.PeerPieceInfo)
-		resp := buk.Get([]byte(fileHash))
+		resp := buk.Get([]byte(fileInfoHash))
 		if resp != nil {
 			err = json.Unmarshal(resp, &savedPPInfo)
 			if err != nil {
@@ -327,6 +327,6 @@ func savePeerPieceInfo(fileHash string, ppInfo storage.PeerPieceInfo) (err error
 		if err != nil {
 			return err
 		}
-		return buk.Put([]byte(fileHash), jsonData)
+		return buk.Put([]byte(fileInfoHash), jsonData)
 	})
 }

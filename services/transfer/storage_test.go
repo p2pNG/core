@@ -113,8 +113,8 @@ func TestSaveLocalFileInfo(t *testing.T) {
 
 func Test_savePeerPieceInfo(t *testing.T) {
 	type args struct {
-		fileHash string
-		ppInfo   storage.PeerPieceInfo
+		fileInfoHash string
+		ppInfo       storage.PeerPieceInfo
 	}
 	tests := []struct {
 		name    string
@@ -124,15 +124,15 @@ func Test_savePeerPieceInfo(t *testing.T) {
 		{
 			name: "Test_savePeerPieceInfo",
 			args: args{
-				fileHash: storage.TestFileHash,
-				ppInfo:   storage.TestPeerPieceInfo,
+				fileInfoHash: storage.TestFileInfoHash,
+				ppInfo:       storage.TestPeerPieceInfo,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := savePeerPieceInfo(tt.args.fileHash, tt.args.ppInfo); (err != nil) != tt.wantErr {
+			if err := savePeerPieceInfo(tt.args.fileInfoHash, tt.args.ppInfo); (err != nil) != tt.wantErr {
 				t.Errorf("savePeerPieceInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -381,7 +381,7 @@ func TestGetPeerByFileHash(t *testing.T) {
 
 func Test_getPeerPieceInfoByFileHash(t *testing.T) {
 	type args struct {
-		fileHash string
+		fileInfoHash string
 	}
 	tests := []struct {
 		name       string
@@ -392,7 +392,7 @@ func Test_getPeerPieceInfoByFileHash(t *testing.T) {
 		{
 			name: "Test_getPeerPieceInfoByFileHash",
 			args: args{
-				fileHash: storage.TestFileHash,
+				fileInfoHash: storage.TestFileInfoHash,
 			},
 			wantPpInfo: storage.TestPeerPieceInfo,
 			wantErr:    false,
@@ -400,13 +400,13 @@ func Test_getPeerPieceInfoByFileHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotPpInfo, err := getPeerPieceInfoByFileHash(tt.args.fileHash)
+			gotPpInfo, err := getPeerPieceInfoByFileInfoHash(tt.args.fileInfoHash)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getPeerPieceInfoByFileHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getPeerPieceInfoByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotPpInfo, tt.wantPpInfo) {
-				t.Errorf("getPeerPieceInfoByFileHash() gotPpInfo = %v, want %v", gotPpInfo, tt.wantPpInfo)
+				t.Errorf("getPeerPieceInfoByFileInfoHash() gotPpInfo = %v, want %v", gotPpInfo, tt.wantPpInfo)
 			}
 		})
 	}

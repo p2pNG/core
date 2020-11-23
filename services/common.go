@@ -37,7 +37,7 @@ const (
 // SeedHashToPeerDB 	Key=SeedHash,Value=PeerInfo
 // FileInfoHashToPeerDB Key=FileInfoHash,Value=PeerInfo
 // FileHashToPeerDB 	Key=FileHash,Value=PeerInfo
-// FileHashToPeerPieceDB 	Key=FileHash,Value=PeerPieceInfo
+// FileInfoHashToPeerPieceDB 	Key=FileInfoHash,Value=PeerPieceInfo
 const (
 	SeedHashToSeedDB          = "SeedInfoHash-SeedInfo"
 	FileInfoHashToFileDB      = "FileInfoHash-FileInfo"
@@ -46,7 +46,7 @@ const (
 	SeedHashToPeerDB          = "SeedInfoHash-PeerInfo"
 	FileInfoHashToPeerDB      = "FileInfoHash-PeerInfo"
 	FileHashToPeerDB          = "FileHash-PeerInfo"
-	FileHashToPeerPieceDB     = "FileHash-PeerPieceInfo"
+	FileInfoHashToPeerPieceDB = "FileInfoHash-PeerPieceInfo"
 )
 
 var DataBaseBuckets = []string{
@@ -61,7 +61,7 @@ var DataBaseBuckets = []string{
 	FileInfoHashToPeerDB,
 	FileHashToPeerDB,
 	//peer piece
-	FileHashToPeerPieceDB}
+	FileInfoHashToPeerPieceDB}
 
 // GetHttpClient returns a http client
 func GetHttpClient() (client *http.Client, err error) {

@@ -103,3 +103,30 @@ func TestQuerySeedInfoBySeedInfoHash(t *testing.T) {
 		})
 	}
 }
+
+func TestQueryFileInfoByFileHash(t *testing.T) {
+	type args struct {
+		peerAddr string
+		fileHash string
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantFileInfo *storage.FileInfo
+		wantErr      bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotFileInfo, err := QueryFileInfoByFileHash(tt.args.peerAddr, tt.args.fileHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QueryFileInfoByFileHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotFileInfo, tt.wantFileInfo) {
+				t.Errorf("QueryFileInfoByFileHash() gotFileInfo = %v, want %v", gotFileInfo, tt.wantFileInfo)
+			}
+		})
+	}
+}
