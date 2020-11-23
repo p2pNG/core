@@ -2,6 +2,8 @@ package storage
 
 import (
 	"github.com/p2pNG/core/internal/logging"
+	"github.com/p2pNG/core/services/discovery"
+	"net"
 	"time"
 )
 
@@ -63,6 +65,12 @@ var TestSeedInfo = SeedInfo{
 	},
 	ExtraInfo: nil,
 	WellKnown: TestSeedWellKnown,
+}
+var TestPeerInfo = discovery.PeerInfo{
+	Address:  net.ParseIP("127.0.0.1"),
+	Port:     6060,
+	DNS:      []string{"dns"},
+	LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
 }
 
 func getTestPiece() []byte {
