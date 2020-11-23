@@ -46,12 +46,12 @@ func getFileInfoByFileHash(w http.ResponseWriter, r *http.Request) {
 // getFileInfoByFileInfoHash returns FileInfo that matches the FileInfoHash
 func getFileInfoByFileInfoHash(w http.ResponseWriter, r *http.Request) {
 	fileInfoHash := chi.URLParam(r, "fileInfoHash")
-	fileInfoList, err := GetFileInfoByFileInfoHash(fileInfoHash)
+	fileInfo, err := GetFileInfoByFileInfoHash(fileInfoHash)
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
 		return
 	}
-	services.WriteRespDataAsJSON(w, fileInfoList)
+	services.WriteRespDataAsJSON(w, fileInfo)
 }
 
 // getSeedInfo returns SeedInfo that matches the SeedInfoHash
