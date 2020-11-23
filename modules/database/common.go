@@ -53,5 +53,6 @@ func CloseDBEngine() {
 		if err := defaultDBEngine.Close(); err != nil {
 			logging.Log().Error("close database failed", zap.Error(err))
 		}
+		defaultDBEngine = nil
 	}
 }
