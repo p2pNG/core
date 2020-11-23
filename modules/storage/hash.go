@@ -30,8 +30,8 @@ func HashSeedInfo(seedInfo SeedInfo) (seedInfoHash string) {
 			seedInfoContent = append(seedInfoContent, []byte(string(seedFileItemContent)+separator)...)
 		}
 	}
-	sum := sha512.New().Sum(seedInfoContent)
-	return base64.URLEncoding.EncodeToString(sum)
+	sum := sha512.Sum512(seedInfoContent)
+	return base64.URLEncoding.EncodeToString(sum[:])
 }
 
 // HashFileInfo returns hash of FileInfo content
@@ -45,8 +45,8 @@ func HashFileInfo(fileInfo FileInfo) (fileInfoHash string) {
 		}
 	}
 	fileInfoContent = append(fileInfoContent, []byte(strconv.Itoa(int(fileInfo.PieceLength))+separator)...)
-	sum := sha512.New().Sum(fileInfoContent)
-	return base64.URLEncoding.EncodeToString(sum)
+	sum := sha512.Sum512(fileInfoContent)
+	return base64.URLEncoding.EncodeToString(sum[:])
 }
 
 // HashFileInBytes returns hash of File content
@@ -55,8 +55,8 @@ func HashFileInBytes(file []byte) (fileHash string, err error) {
 		err = errors.New("could not hash a nil file")
 		return
 	}
-	sum := sha512.New().Sum(file)
-	return base64.URLEncoding.EncodeToString(sum), nil
+	sum := sha512.Sum512(file)
+	return base64.URLEncoding.EncodeToString(sum[:]), nil
 }
 
 // HashFile returns file‘s hash by filePath
@@ -71,7 +71,7 @@ func HashFile(filePath string) (fileHash string, err error) {
 	if err != nil {
 		return
 	}
-	if stat, err := os.Stat(filePath); err != nil {
+	if stat, err := os.Stat(filePath); err == nil {
 		content := make([]byte, stat.Size())
 		_, err = file.Read(content)
 		if err != nil {
@@ -88,6 +88,6 @@ func HashFilePieceInBytes(piece []byte) (pieceHash string, err error) {
 		err = errors.New("could not hash a nil file piece")
 		return
 	}
-	sum := sha512.New512_256().Sum(piece)
-	return base64.URLEncoding.EncodeToString(sum), nil
+	sum := sha512.Sum512_256(piece)
+	return base64.URLEncoding.EncodeToString(sum[:]), nil
 }
