@@ -8,7 +8,7 @@ import (
 )
 
 // path
-var testDataPath = "F://GoModProjects/p2pNG/core/test/testdata"
+var testDataPath = "./test/testdata"
 var TestFilePath = testDataPath + "/TestFile.txt"
 var TestSeedPath string = testDataPath + "/Download/TestSeed"
 var TestSeedFilePath = "/TestFile/TestFile_Downloaded.txt"
