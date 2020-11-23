@@ -123,3 +123,29 @@ func AppDataDir() string {
 	}
 	return "./p2pNG"
 }
+
+// IsFilePathExist returns true if the file is exist otherwise false
+func IsFilePathExist(filePath string) bool {
+	_, err := os.Stat(filePath)
+	if err != nil && os.IsNotExist(err) {
+		return false
+	} else {
+		return true
+	}
+}
+
+// RemoveFilePath remove a file or dir from disk
+func RemoveFilePath(path string) {
+	err := os.Remove(path)
+	if err != nil {
+		logging.Log().Error("fail to remove file or dir:"+path, zap.Error(err))
+	}
+}
+
+// CloseFile close file and print err msg if error happens
+func CloseFile(file *os.File) {
+	err := file.Close()
+	if err != nil {
+		logging.Log().Error("fail to close file:"+file.Name(), zap.Error(err))
+	}
+}
