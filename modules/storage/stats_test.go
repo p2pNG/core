@@ -35,6 +35,8 @@ func TestStatLocalFile(t *testing.T) {
 				t.Errorf("StatLocalFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			// ignore modify time
+			tt.wantLf.LastModify = gotLf.LastModify
 			if !reflect.DeepEqual(gotLf, tt.wantLf) {
 				t.Errorf("StatLocalFile() gotLf = %v, want %v", gotLf, tt.wantLf)
 			}
