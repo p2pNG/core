@@ -1,15 +1,14 @@
 package storage
 
 import (
-	"crypto/sha512"
-	"encoding/base64"
 	"errors"
 	"io"
 	"os"
+	"time"
 )
 
 // StatLocalFile return the LocalFileInfo for a file in the disk
-func StatLocalFile(filepath string, pieceLength int64) (lf *LocalFileInfo, err error) {
+func StatLocalFile(filepath string, pieceLength int64, wellKnown []string) (lf *LocalFileInfo, err error) {
 	// todo: merge StatFile function
 	stat, err := os.Stat(filepath)
 	if err != nil {
@@ -19,19 +18,23 @@ func StatLocalFile(filepath string, pieceLength int64) (lf *LocalFileInfo, err e
 		err = errors.New("not a valid file")
 		return
 	}
-	fileInfo, err := StatFile(filepath, pieceLength)
+	fileInfo, err := statFile(filepath, pieceLength, wellKnown)
+	if err != nil {
+		return nil, err
+	}
+	modTime, err := time.Parse(TimeLayout, stat.ModTime().Format(TimeLayout))
 	if err != nil {
 		return nil, err
 	}
 	return &LocalFileInfo{
-		LastModify: stat.ModTime(),
+		LastModify: modTime,
 		Path:       filepath,
 		FileInfo:   *fileInfo,
 	}, nil
 }
 
-// StatFile return the FileInfo for a file in the disk
-func StatFile(filepath string, pieceLength int64) (fileInfo *FileInfo, err error) {
+// statFile return the FileInfo for a file in the disk
+func statFile(filepath string, pieceLength int64, wellKnown []string) (fileInfo *FileInfo, err error) {
 
 	if pieceLength <= MinFilePieceLength {
 		pieceLength = DefaultFilePieceLength
@@ -50,11 +53,11 @@ func StatFile(filepath string, pieceLength int64) (fileInfo *FileInfo, err error
 		return
 	}
 
-	pieceBuf := make([]byte, pieceLength)
-	fileHash := sha512.New()
+	var fileBuf []byte
 	var pieceHashList []string
 	lastPieceLength := 0
 	for {
+		pieceBuf := make([]byte, pieceLength)
 		n, err := file.Read(pieceBuf)
 		if err != nil {
 			if err == io.EOF {
@@ -66,14 +69,12 @@ func StatFile(filepath string, pieceLength int64) (fileInfo *FileInfo, err error
 
 		if int64(n) != pieceLength {
 			lastPieceLength = n
+			pieceBuf = pieceBuf[:lastPieceLength]
 		}
 
-		_, err = fileHash.Write(pieceBuf)
-		if err != nil {
-			return nil, err
-		}
+		fileBuf = append(fileBuf, pieceBuf...)
 
-		if pieceHash, err := HashFilePieceInBytes(pieceBuf); err != nil {
+		if pieceHash, err := HashFilePieceInBytes(pieceBuf); err == nil {
 			pieceHashList = append(pieceHashList, pieceHash)
 		} else {
 			return nil, err
@@ -81,15 +82,19 @@ func StatFile(filepath string, pieceLength int64) (fileInfo *FileInfo, err error
 	}
 
 	// check file length
-	if stat.Size() != int64(len(pieceHashList))*pieceLength+int64(lastPieceLength) {
+	if stat.Size() != int64(len(pieceHashList)-1)*pieceLength+int64(lastPieceLength) {
 		err = errors.New("read file error, length not matched")
-		return
+		return nil, err
 	}
-
+	fileHash, err := HashFileInBytes(fileBuf)
+	if err != nil {
+		return nil, err
+	}
 	return &FileInfo{
 		Size:        stat.Size(),
-		Hash:        base64.URLEncoding.EncodeToString(fileHash.Sum(nil)),
+		Hash:        fileHash,
 		PieceLength: pieceLength,
 		PieceHash:   pieceHashList,
+		WellKnown:   wellKnown,
 	}, nil
 }
