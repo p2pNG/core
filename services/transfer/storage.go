@@ -2,7 +2,7 @@ package transfer
 
 import (
 	"encoding/json"
-	"errors"
+	errors "errors"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
@@ -96,7 +96,7 @@ func GetFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error
 }
 
 // SaveSeedInfo save SeedInfo to SeedHashToSeedDB
-func SaveSeedInfo(seed storage.SeedInfo) error {
+func SaveSeedInfo(seedInfo storage.SeedInfo) error {
 	db, err := database.GetDBEngine()
 	defer database.CloseDBEngine()
 	if err != nil {
@@ -107,8 +107,8 @@ func SaveSeedInfo(seed storage.SeedInfo) error {
 		if buk == nil {
 			return errors.New("database error : bucket [" + SeedHashToSeedDB + "] does not exist")
 		}
-		seedInfoHash := storage.HashSeedInfo(seed)
-		jsonData, err := json.Marshal(seed)
+		seedInfoHash := storage.HashSeedInfo(seedInfo)
+		jsonData, err := json.Marshal(seedInfo)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func SaveSeedInfo(seed storage.SeedInfo) error {
 }
 
 // SaveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB
-func SaveFileInfo(file storage.FileInfo) error {
+func SaveFileInfo(fileInfo storage.FileInfo) error {
 	db, err := database.GetDBEngine()
 	defer database.CloseDBEngine()
 	if err != nil {
@@ -129,8 +129,8 @@ func SaveFileInfo(file storage.FileInfo) error {
 		if buk == nil {
 			return errors.New("database error : bucket [" + FileInfoHashToFileDB + "] does not exist")
 		}
-		fileInfoHash := storage.HashFileInfo(file)
-		jsonData, err := json.Marshal(file)
+		fileInfoHash := storage.HashFileInfo(fileInfo)
+		jsonData, err := json.Marshal(fileInfo)
 		if err != nil {
 			return err
 		}
@@ -144,7 +144,7 @@ func SaveFileInfo(file storage.FileInfo) error {
 			return errors.New("database error : bucket [" + FileHashToFileDB + "] does not exist")
 		}
 		// get fileInfoHashMap from bucket
-		fileInfoHashMapJSON := buk.Get([]byte(file.Hash))
+		fileInfoHashMapJSON := buk.Get([]byte(fileInfo.Hash))
 		fileInfoHashMap := make(map[string]storage.FileInfo)
 		if fileInfoHashMapJSON != nil {
 			err = json.Unmarshal(fileInfoHashMapJSON, &fileInfoHashMap)
@@ -152,15 +152,13 @@ func SaveFileInfo(file storage.FileInfo) error {
 				return err
 			}
 		}
-		// add current FileInfo if not exist
-		if _, ok := fileInfoHashMap[fileInfoHash]; !ok {
-			fileInfoHashMap[fileInfoHash] = file
-		}
+		// overwrite FileInfo if exist,because fileInfoHash won‘t change when well known change
+		fileInfoHashMap[fileInfoHash] = fileInfo
 		fileInfoHashMapJSON, err = json.Marshal(fileInfoHashMap)
 		if err != nil {
 			return err
 		}
-		err = buk.Put([]byte(file.Hash), fileInfoHashMapJSON)
+		err = buk.Put([]byte(fileInfo.Hash), fileInfoHashMapJSON)
 		if err != nil {
 			return err
 		}
