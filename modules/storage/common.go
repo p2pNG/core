@@ -6,10 +6,13 @@ import (
 
 // DefaultFilePieceLength used for the default parameter to split a file to several blocks
 // MinFilePieceLength used for the min parameter to split a file to several blocks
+// TimeLayout layout to format time
 const (
 	separator              = ":"
 	DefaultFilePieceLength = 4 * 1024 * 1024
-	MinFilePieceLength     = 1024 * 1024
+	// todo: min piece length should be 1024*1024
+	MinFilePieceLength = 1023
+	TimeLayout         = "2006-01-02 15:04:05"
 )
 
 // FileInfo describes how to download a file
