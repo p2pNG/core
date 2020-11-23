@@ -30,6 +30,7 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
+// Save
 func TestSaveFileInfo(t *testing.T) {
 	type args struct {
 		file storage.FileInfo
@@ -82,6 +83,63 @@ func TestSaveSeedInfo(t *testing.T) {
 	}
 }
 
+func TestSaveLocalFileInfo(t *testing.T) {
+	type args struct {
+		fileInfoHash  string
+		localFileInfo storage.LocalFileInfo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "TestSaveLocalFileInfo",
+			args: args{
+				fileInfoHash:  storage.TestFileInfoHash,
+				localFileInfo: storage.TestLocalFileInfo,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := saveLocalFileInfo(tt.args.fileInfoHash, tt.args.localFileInfo); (err != nil) != tt.wantErr {
+				t.Errorf("saveLocalFileInfo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_savePeerPieceInfo(t *testing.T) {
+	type args struct {
+		fileHash string
+		ppInfo   storage.PeerPieceInfo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Test_savePeerPieceInfo",
+			args: args{
+				fileHash: storage.TestFileHash,
+				ppInfo:   storage.TestPeerPieceInfo,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := savePeerPieceInfo(tt.args.fileHash, tt.args.ppInfo); (err != nil) != tt.wantErr {
+				t.Errorf("savePeerPieceInfo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// Get
 func TestGetFileInfoByFileInfoHash(t *testing.T) {
 	type args struct {
 		fileInfoHash string
@@ -178,34 +236,6 @@ func TestGetFileInfoByFileHash(t *testing.T) {
 			}
 			if !reflect.DeepEqual(gotFiles, tt.wantFiles) {
 				t.Errorf("getFileInfoByFileHash() gotFiles = %v, want %v", gotFiles, tt.wantFiles)
-			}
-		})
-	}
-}
-
-func TestSaveLocalFileInfo(t *testing.T) {
-	type args struct {
-		fileInfoHash  string
-		localFileInfo storage.LocalFileInfo
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "TestSaveLocalFileInfo",
-			args: args{
-				fileInfoHash:  storage.TestFileInfoHash,
-				localFileInfo: storage.TestLocalFileInfo,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := saveLocalFileInfo(tt.args.fileInfoHash, tt.args.localFileInfo); (err != nil) != tt.wantErr {
-				t.Errorf("saveLocalFileInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -344,6 +374,39 @@ func TestGetPeerByFileHash(t *testing.T) {
 			}
 			if !reflect.DeepEqual(gotPeers, tt.wantPeers) {
 				t.Errorf("getPeerByFileHash() gotPeers = %v, want %v", gotPeers, tt.wantPeers)
+			}
+		})
+	}
+}
+
+func Test_getPeerPieceInfoByFileHash(t *testing.T) {
+	type args struct {
+		fileHash string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantPpInfo storage.PeerPieceInfo
+		wantErr    bool
+	}{
+		{
+			name: "Test_getPeerPieceInfoByFileHash",
+			args: args{
+				fileHash: storage.TestFileHash,
+			},
+			wantPpInfo: storage.TestPeerPieceInfo,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPpInfo, err := getPeerPieceInfoByFileHash(tt.args.fileHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getPeerPieceInfoByFileHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPpInfo, tt.wantPpInfo) {
+				t.Errorf("getPeerPieceInfoByFileHash() gotPpInfo = %v, want %v", gotPpInfo, tt.wantPpInfo)
 			}
 		})
 	}

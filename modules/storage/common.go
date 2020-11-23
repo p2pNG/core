@@ -47,3 +47,7 @@ type LocalFileInfo struct {
 	Path       string
 	LastModify time.Time
 }
+
+// PeerPieceInfo describes piece list of a peer
+// key = peer addr , value = piece list
+type PeerPieceInfo map[string][]byte

@@ -8,8 +8,8 @@ import (
 	"net/http"
 )
 
-// getNodeStatus returns the NodeInfo of current node
-func getNodeStatus(w http.ResponseWriter, r *http.Request) {
+// serverGetNodeStatus returns the NodeInfo of current node
+func serverGetNodeStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context().Value(services.StatusContext).(coreStatusContext)
 	node := nodeInfo{
 		Name:      utils.GetHostname(),
@@ -19,8 +19,8 @@ func getNodeStatus(w http.ResponseWriter, r *http.Request) {
 	services.WriteRespDataAsJSON(w, &node)
 }
 
-// getNodePeers returns the peers of current node
-func getNodePeers(w http.ResponseWriter, r *http.Request) {
+// serverGetNodePeers returns the peers of current node
+func serverGetNodePeers(w http.ResponseWriter, r *http.Request) {
 	peers, err := discovery.GetPeerRegistry()
 	if err == nil {
 		services.WriteRespDataAsJSON(w, &peers)
@@ -29,8 +29,8 @@ func getNodePeers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getNodeSeeds returns the SeedInfo list of current node
-func getNodeSeeds(w http.ResponseWriter, r *http.Request) {
+// serverGetNodeSeeds returns the SeedInfo list of current node
+func serverGetNodeSeeds(w http.ResponseWriter, r *http.Request) {
 	seedHashList, err := getSeedInfoHashList()
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
@@ -39,8 +39,8 @@ func getNodeSeeds(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getNodeFileHash returns the FileHash list of current node
-func getNodeFileHash(w http.ResponseWriter, r *http.Request) {
+// serverGetNodeFileHash returns the FileHash list of current node
+func serverGetNodeFileHash(w http.ResponseWriter, r *http.Request) {
 	fileHashList, err := getFileHashList()
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
@@ -49,12 +49,22 @@ func getNodeFileHash(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getNodeFileInfoHash returns the FileInfoHash list of current node
-func getNodeFileInfoHash(w http.ResponseWriter, r *http.Request) {
+// serverGetNodeFileInfoHash returns the FileInfoHash list of current node
+func serverGetNodeFileInfoHash(w http.ResponseWriter, r *http.Request) {
 	fileInfoHashList, err := getFileInfoHashList()
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
 	} else {
 		services.WriteRespDataAsJSON(w, fileInfoHashList)
+	}
+}
+
+// serverGetNodePPList returns the PeerPieceInfo list of current node
+func serverGetNodePPList(w http.ResponseWriter, r *http.Request) {
+	peerPieceInfoList, err := getPeerPieceInfoList()
+	if err != nil {
+		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
+	} else {
+		services.WriteRespDataAsJSON(w, peerPieceInfoList)
 	}
 }

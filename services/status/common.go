@@ -37,7 +37,8 @@ func (p *coreStatusPlugin) PluginInfo() *core.PluginInfo {
 		Name:    "github.com/p2pNG/core/services/status",
 		Version: "0.0.0",
 		Prefix:  "/status",
-		Buckets: []string{services.SeedHashToPeerDB, services.FileInfoHashToPeerDB, services.FileHashToPeerDB},
+		Buckets: []string{services.SeedHashToPeerDB, services.FileInfoHashToPeerDB,
+			services.FileHashToPeerDB, services.FileHashToPeerPieceDB},
 	}
 }
 
@@ -49,11 +50,12 @@ func (p *coreStatusPlugin) GetRouter() chi.Router {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
-	r.Get("/node", getNodeStatus)
-	r.Get("/peer", getNodePeers)
-	r.Get("/seed", getNodeSeeds)
-	r.Get("/fileHash", getNodeFileHash)
-	r.Get("/fileInfoHash", getNodeFileInfoHash)
+	r.Get("/node", serverGetNodeStatus)
+	r.Get("/peer", serverGetNodePeers)
+	r.Get("/seed", serverGetNodeSeeds)
+	r.Get("/fileHash", serverGetNodeFileHash)
+	r.Get("/fileInfoHash", serverGetNodeFileInfoHash)
+	r.Get("/peerPieceInfo", serverGetNodePPList)
 	return r
 }
 

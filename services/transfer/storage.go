@@ -282,3 +282,51 @@ func getPeerByFileHash(fileHash string) (peers []discovery.PeerInfo, err error) 
 	})
 	return
 }
+
+func getPeerPieceInfoByFileHash(fileHash string) (ppInfo storage.PeerPieceInfo, err error) {
+	db, err := database.GetDBEngine()
+	if err != nil {
+		return nil, err
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+		}
+		ppInfo = make(storage.PeerPieceInfo)
+		jsonData := buk.Get([]byte(fileHash))
+		return json.Unmarshal(jsonData, &ppInfo)
+	})
+	return
+}
+
+func savePeerPieceInfo(fileHash string, ppInfo storage.PeerPieceInfo) (err error) {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+		}
+		var savedPPInfo = make(storage.PeerPieceInfo)
+		resp := buk.Get([]byte(fileHash))
+		if resp != nil {
+			err = json.Unmarshal(resp, &savedPPInfo)
+			if err != nil {
+				return err
+			}
+		}
+		for peerAddr, pieceInfo := range ppInfo {
+			savedPPInfo[peerAddr] = pieceInfo
+		}
+
+		jsonData, err := json.Marshal(savedPPInfo)
+		if err != nil {
+			return err
+		}
+		return buk.Put([]byte(fileHash), jsonData)
+	})
+}

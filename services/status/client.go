@@ -4,10 +4,27 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/p2pNG/core/internal/logging"
+	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
 	"github.com/p2pNG/core/services/discovery"
 	"net/http"
 )
+
+// visitPeers visit each peer and run fn function
+func visitPeers(fn func(peer discovery.PeerInfo) error) error {
+	peers, err := discovery.GetPeerRegistry()
+	if err != nil {
+		return err
+	}
+
+	for _, peer := range peers {
+		err = fn(peer)
+		if err != nil {
+			logging.Log().Warn(err.Error())
+		}
+	}
+	return nil
+}
 
 // exchangePeers query peers from discovered nodes and save
 func exchangePeers() error {
@@ -37,7 +54,7 @@ func exchangePeers() error {
 				return err
 			}
 		} else {
-			return errors.New(resp.Header.Get("p2pNG-msg"))
+			return errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
 		}
 		return nil
 	})
@@ -71,7 +88,7 @@ func exchangeSeeds() error {
 				return err
 			}
 		} else {
-			return errors.New(resp.Header.Get("p2pNG-msg"))
+			return errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
 		}
 		return nil
 	})
@@ -105,7 +122,7 @@ func exchangeFileInfoHash() error {
 				return err
 			}
 		} else {
-			return errors.New(resp.Header.Get("p2pNG-msg"))
+			return errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
 		}
 		return nil
 	})
@@ -139,24 +156,37 @@ func exchangeFileHash() error {
 				return err
 			}
 		} else {
-			return errors.New(resp.Header.Get("p2pNG-msg"))
+			return errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
 		}
 		return nil
 	})
 }
 
-// visitPeers visit each peer and run fn function
-func visitPeers(fn func(peer discovery.PeerInfo) error) error {
-	peers, err := discovery.GetPeerRegistry()
-	if err != nil {
-		return err
-	}
-
-	for _, peer := range peers {
-		err = fn(peer)
+// exchangePeerPieceInfo query PeerPieceInfo list from discovered nodes and save
+func exchangePeerPieceInfo() error {
+	return visitPeers(func(peer discovery.PeerInfo) error {
+		client, err := services.GetHttpClient()
 		if err != nil {
-			logging.Log().Warn(err.Error())
+			return err
 		}
-	}
-	return nil
+		resp, err := client.Get(peer.Address.String() + "/status/peerPieceInfo")
+		if err != nil {
+			return err
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			ppInfoList := make(map[string]storage.PeerPieceInfo)
+			err = services.ReadJSONBody(resp, ppInfoList)
+			if err != nil {
+				return err
+			}
+			err = savePeerPieceInfoList(ppInfoList)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
+		}
+		return nil
+	})
 }

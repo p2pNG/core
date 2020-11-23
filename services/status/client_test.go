@@ -103,3 +103,22 @@ func Test_visitPeers(t *testing.T) {
 		})
 	}
 }
+
+func Test_exchangePeerPieceInfo(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "Test_exchangePeerPieceInfo",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := exchangePeerPieceInfo(); (err != nil) != tt.wantErr {
+				t.Errorf("exchangePeerPieceInfo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

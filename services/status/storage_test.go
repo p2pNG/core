@@ -203,3 +203,55 @@ func TestGetFileInfoHashList(t *testing.T) {
 		})
 	}
 }
+
+func Test_savePeerPieceInfoList(t *testing.T) {
+	type args struct {
+		ppInfoList map[string]storage.PeerPieceInfo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Test_savePeerPieceInfoList",
+			args: args{
+				ppInfoList: storage.TestPPInfoList,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := savePeerPieceInfoList(tt.args.ppInfoList); (err != nil) != tt.wantErr {
+				t.Errorf("savePeerPieceInfoList() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_getPeerPieceInfoList(t *testing.T) {
+	tests := []struct {
+		name           string
+		wantPpInfoList map[string]storage.PeerPieceInfo
+		wantErr        bool
+	}{
+		{
+			name:           "Test_getPeerPieceInfoList",
+			wantPpInfoList: storage.TestPPInfoList,
+			wantErr:        false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPpInfoList, err := getPeerPieceInfoList()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getPeerPieceInfoList() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPpInfoList, tt.wantPpInfoList) {
+				t.Errorf("getPeerPieceInfoList() gotPpInfoList = %v, want %v", gotPpInfoList, tt.wantPpInfoList)
+			}
+		})
+	}
+}

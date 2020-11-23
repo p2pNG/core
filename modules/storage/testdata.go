@@ -26,6 +26,9 @@ var TestSeedWellKnown = []string{
 var TestFileWellKnown = []string{
 	TestPeerAddr,
 }
+var TestPieceInfo = []byte{
+	1, 1, 1, 1,
+}
 
 // hash
 var TestPieceHash = TestFileInfo.PieceHash[TestPieceIndex]
@@ -71,6 +74,14 @@ var TestPeerInfo = discovery.PeerInfo{
 	Port:     6060,
 	DNS:      []string{"dns"},
 	LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
+}
+
+var TestPeerPieceInfo = PeerPieceInfo{
+	TestPeerAddr: TestPieceInfo,
+}
+
+var TestPPInfoList = map[string]PeerPieceInfo{
+	TestFileHash: TestPeerPieceInfo,
 }
 
 func getTestPiece() []byte {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/p2pNG/core/modules/database"
+	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
 	"github.com/p2pNG/core/services/discovery"
 	bolt "go.etcd.io/bbolt"
@@ -138,10 +139,61 @@ func getFileHashList() (fileHashList []string, err error) {
 	return services.GetAllKeyFromBucket(services.FileHashToFileDB)
 }
 
-func getPeerPieceInfoByFileHash() {
+func savePeerPieceInfoList(ppInfoList map[string]storage.PeerPieceInfo) (err error) {
+	db, err := database.GetDBEngine()
 
+	if err != nil {
+		return
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+		}
+		for fileHash, ppInfo := range ppInfoList {
+			var savedPPInfo = make(storage.PeerPieceInfo)
+			resp := buk.Get([]byte(fileHash))
+			if resp != nil {
+				err = json.Unmarshal(resp, &savedPPInfo)
+				if err != nil {
+					return err
+				}
+			}
+			for peerAddr, pieceInfo := range ppInfo {
+				savedPPInfo[peerAddr] = pieceInfo
+			}
+
+			jsonData, err := json.Marshal(savedPPInfo)
+			if err != nil {
+				return err
+			}
+			return buk.Put([]byte(fileHash), jsonData)
+		}
+		return nil
+	})
 }
 
-func getPeerPieceInfoList() {
-
+func getPeerPieceInfoList() (ppInfoList map[string]storage.PeerPieceInfo, err error) {
+	db, err := database.GetDBEngine()
+	if err != nil {
+		return nil, err
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileHashToPeerPieceDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileHashToPeerPieceDB + "] does not exist")
+		}
+		ppInfoList = make(map[string]storage.PeerPieceInfo)
+		err = buk.ForEach(func(k, v []byte) error {
+			ppInfo := make(storage.PeerPieceInfo)
+			err := json.Unmarshal(v, &ppInfo)
+			if err != nil {
+				return err
+			}
+			ppInfoList[string(k)] = ppInfo
+			return nil
+		})
+		return err
+	})
+	return
 }
