@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"io"
 	"os"
 )
 
@@ -16,9 +17,9 @@ func ReadFilePiece(localFileInfo LocalFileInfo, pieceIndex int64) (piece []byte,
 		return nil, err
 	}
 	piece = make([]byte, localFileInfo.PieceLength)
-	_, err = file.ReadAt(piece, offset)
-	if err != nil {
+	n, err := file.ReadAt(piece, offset)
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
-	return piece, nil
+	return piece[:n], nil
 }
