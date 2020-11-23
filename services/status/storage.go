@@ -12,6 +12,7 @@ import (
 // input the SeedInfo that the peer have
 func SaveSeedInfoHash(seedHashList []string, peer discovery.PeerInfo) (err error) {
 	db, err := database.GetDBEngine()
+
 	if err != nil {
 		return
 	}
@@ -48,6 +49,7 @@ func SaveSeedInfoHash(seedHashList []string, peer discovery.PeerInfo) (err error
 // GetPeerBySeedHash returns peers that has this SeedInfo match the seedHash
 func GetPeerBySeedHash(seedHash string) (peers []discovery.PeerInfo, err error) {
 	db, err := database.GetDBEngine()
+
 	if err != nil {
 		return
 	}
@@ -77,6 +79,7 @@ func GetPeerBySeedHash(seedHash string) (peers []discovery.PeerInfo, err error) 
 // input the FileInfo that the peer have
 func SaveFileInfoHash(fileInfoHashList []string, peer discovery.PeerInfo) (err error) {
 	db, err := database.GetDBEngine()
+
 	if err != nil {
 		return
 	}
@@ -113,6 +116,7 @@ func SaveFileInfoHash(fileInfoHashList []string, peer discovery.PeerInfo) (err e
 // GetPeerByFileInfoHash returns peers that has this FileInfo match the fileInfoHash
 func GetPeerByFileInfoHash(fileInfoHash string) (peers []discovery.PeerInfo, err error) {
 	db, err := database.GetDBEngine()
+
 	if err != nil {
 		return
 	}
@@ -123,7 +127,7 @@ func GetPeerByFileInfoHash(fileInfoHash string) (peers []discovery.PeerInfo, err
 		}
 		peerMapJSON := buk.Get([]byte(fileInfoHash))
 		if peerMapJSON == nil {
-			err = errors.New("peerInfo not fond")
+			return errors.New("peerInfo not fond")
 		}
 		var peerMap map[string]discovery.PeerInfo
 		err := json.Unmarshal(peerMapJSON, &peerMap)
@@ -142,6 +146,7 @@ func GetPeerByFileInfoHash(fileInfoHash string) (peers []discovery.PeerInfo, err
 // input the FileHash that the peer have
 func SaveFileHash(fileHashList []string, peer discovery.PeerInfo) (err error) {
 	db, err := database.GetDBEngine()
+
 	if err != nil {
 		return
 	}
@@ -178,6 +183,7 @@ func SaveFileHash(fileHashList []string, peer discovery.PeerInfo) (err error) {
 // GetPeerByFileHash returns peers that has this FileInfo match the fileHash
 func GetPeerByFileHash(fileHash string) (peers []discovery.PeerInfo, err error) {
 	db, err := database.GetDBEngine()
+
 	if err != nil {
 		return
 	}

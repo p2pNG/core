@@ -1,10 +1,32 @@
 package transfer
 
 import (
+	"github.com/p2pNG/core/internal/logging"
+	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
+	"go.uber.org/zap"
 	"reflect"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	err := database.OpenDB("testing_database")
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	db, err := database.GetDBEngine()
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	err = database.InitBuckets(db, []string{SeedHashToSeedDB, FileInfoHashToFileDB, FileHashToFileDB, FileInfoHashToLocalFileDB, "discovery_registry"})
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	m.Run()
+}
 
 func TestSaveFileInfo(t *testing.T) {
 	type args struct {

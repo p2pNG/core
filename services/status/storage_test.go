@@ -1,12 +1,33 @@
 package status
 
 import (
+	"github.com/p2pNG/core/internal/logging"
+	"github.com/p2pNG/core/modules/database"
+	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services/discovery"
-	"net"
+	"go.uber.org/zap"
 	"reflect"
 	"testing"
-	"time"
 )
+
+func TestMain(m *testing.M) {
+	err := database.OpenDB("testing_database")
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	db, err := database.GetDBEngine()
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	err = database.InitBuckets(db, []string{SeedHashToPeerDB, FileInfoHashToPeerDB, FileHashToPeerDB, "discovery_registry"})
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	m.Run()
+}
 
 func TestSaveFileInfoHash(t *testing.T) {
 	type args struct {
@@ -19,17 +40,12 @@ func TestSaveFileInfoHash(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Test_saveSeeds",
+			name: "TestSaveFileInfoHash",
 			args: args{
 				fileHashList: []string{
-					"bdae991688970e57bba929524ba9b3d82eda5795",
+					storage.TestFileInfoHash,
 				},
-				peer: discovery.PeerInfo{
-					Address:  net.ParseIP("192.168.1.101"),
-					Port:     6060,
-					DNS:      []string{"dns"},
-					LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-				},
+				peer: storage.TestPeerInfo,
 			},
 			wantErr: false,
 		},
@@ -54,17 +70,12 @@ func TestGetPeerByFileInfoHash(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "TestGetPeerBySeedHash",
+			name: "TestGetPeerByFileInfoHash",
 			args: args{
-				fileInfoHash: "bdae991688970e57bba929524ba9b3d82eda5795",
+				fileInfoHash: storage.TestFileInfoHash,
 			},
 			wantPeers: []discovery.PeerInfo{
-				discovery.PeerInfo{
-					Address:  net.ParseIP("192.168.1.101"),
-					Port:     6060,
-					DNS:      []string{"dns"},
-					LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-				},
+				storage.TestPeerInfo,
 			},
 			wantErr: false,
 		},
@@ -94,17 +105,12 @@ func TestSaveSeedInfoHash(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Test_saveSeeds",
+			name: "TestSaveSeedInfoHash",
 			args: args{
 				seedHashList: []string{
-					"bdae991688970e57bba929524ba9b3d82eda5795",
+					storage.TestSeedInfoHash,
 				},
-				peer: discovery.PeerInfo{
-					Address:  net.ParseIP("192.168.1.101"),
-					Port:     6060,
-					DNS:      []string{"dns"},
-					LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-				},
+				peer: storage.TestPeerInfo,
 			},
 			wantErr: false,
 		},
@@ -131,15 +137,10 @@ func TestGetPeerBySeedHash(t *testing.T) {
 		{
 			name: "TestGetPeerBySeedHash",
 			args: args{
-				seedHash: "bdae991688970e57bba929524ba9b3d82eda5795",
+				seedHash: storage.TestSeedInfoHash,
 			},
 			wantPeers: []discovery.PeerInfo{
-				discovery.PeerInfo{
-					Address:  net.ParseIP("192.168.1.101"),
-					Port:     6060,
-					DNS:      []string{"dns"},
-					LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-				},
+				storage.TestPeerInfo,
 			},
 			wantErr: false,
 		},
@@ -169,17 +170,12 @@ func TestSaveFileHash(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Test_saveSeeds",
+			name: "TestSaveFileHash",
 			args: args{
 				fileHashList: []string{
-					"bdae991688970e57bba929524ba9b3d82eda5795",
+					storage.TestFileHash,
 				},
-				peer: discovery.PeerInfo{
-					Address:  net.ParseIP("192.168.1.101"),
-					Port:     6060,
-					DNS:      []string{"dns"},
-					LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-				},
+				peer: storage.TestPeerInfo,
 			},
 			wantErr: false,
 		},
@@ -204,17 +200,12 @@ func TestGetPeerByFileHash(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "TestGetPeerBySeedHash",
+			name: "TestGetPeerByFileHash",
 			args: args{
-				fileHash: "bdae991688970e57bba929524ba9b3d82eda5795",
+				fileHash: storage.TestFileHash,
 			},
 			wantPeers: []discovery.PeerInfo{
-				discovery.PeerInfo{
-					Address:  net.ParseIP("192.168.1.101"),
-					Port:     6060,
-					DNS:      []string{"dns"},
-					LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-				},
+				storage.TestPeerInfo,
 			},
 			wantErr: false,
 		},
