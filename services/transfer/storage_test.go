@@ -4,43 +4,7 @@ import (
 	"github.com/p2pNG/core/modules/storage"
 	"reflect"
 	"testing"
-	"time"
 )
-
-var testFileInfo = storage.FileInfo{
-	Size:        1024,
-	Hash:        "bdae991688970e57bba929524ba9b3d82eda5795",
-	PieceLength: 1024,
-	PieceHash: []string{
-		"bdae991688970e57bba929524ba9b3d82eda5795",
-	},
-	WellKnown: nil,
-}
-
-var testSeedInfo = storage.SeedInfo{
-	Title: "TestSeedInfoTitle",
-	Files: []storage.SeedFileItem{
-		{
-			Path:            "F:\\www\\TestSeed\\TestFile.txt",
-			Size:            1024,
-			Hash:            testFileHash,
-			RecFileInfoHash: "bdae991688970e57bba929524ba9b3d82eda5795",
-			RecPieceLength:  1024,
-		},
-	},
-	ExtraInfo: nil,
-	WellKnown: nil,
-}
-
-var testLocalFileInfo = storage.LocalFileInfo{
-	LastModify: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
-	Path:       "F:\\www\\TestSeed\\TestFile.txt",
-	FileInfo:   testFileInfo,
-}
-
-var testFileInfoHash = storage.HashFileInfo(testFileInfo)
-var testSeedInfoHash = storage.HashSeedInfo(testSeedInfo)
-var testFileHash = "bdae991688970e57bba929524ba9b3d82eda5795"
 
 func TestSaveFileInfo(t *testing.T) {
 	type args struct {
@@ -54,7 +18,7 @@ func TestSaveFileInfo(t *testing.T) {
 		{
 			name: "TestSaveFileInfo",
 			args: args{
-				file: testFileInfo,
+				file: storage.TestFileInfo,
 			},
 			wantErr: false,
 		},
@@ -80,7 +44,7 @@ func TestSaveSeedInfo(t *testing.T) {
 		{
 			name: "TestSaveSeedInfo",
 			args: args{
-				seed: testSeedInfo,
+				seed: storage.TestSeedInfo,
 			},
 			wantErr: false,
 		},
@@ -107,9 +71,9 @@ func TestGetFileInfoByFileInfoHash(t *testing.T) {
 		{
 			name: "TestGetFileInfoByFileInfoHash",
 			args: args{
-				fileInfoHash: testFileInfoHash,
+				fileInfoHash: storage.TestFileInfoHash,
 			},
-			wantFiles: testFileInfo,
+			wantFiles: storage.TestFileInfo,
 			wantErr:   false,
 		},
 	}
@@ -140,9 +104,9 @@ func TestGetSeedInfo(t *testing.T) {
 		{
 			name: "TestGetSeedInfo",
 			args: args{
-				seedInfoHash: testSeedInfoHash,
+				seedInfoHash: storage.TestSeedInfoHash,
 			},
-			wantSeeds: testSeedInfo,
+			wantSeeds: storage.TestSeedInfo,
 			wantErr:   false,
 		},
 	}
@@ -173,10 +137,10 @@ func TestGetFileInfoByFileHash(t *testing.T) {
 		{
 			name: "TestGetFileInfoByFileHash",
 			args: args{
-				fileHash: testFileHash,
+				fileHash: storage.TestFileHash,
 			},
 			wantFiles: []storage.FileInfo{
-				testFileInfo,
+				storage.TestFileInfo,
 			},
 			wantErr: false,
 		},
@@ -204,7 +168,7 @@ func TestGetFileHashList(t *testing.T) {
 		{
 			name: "TestGetFileHashList",
 			wantFileHashList: []string{
-				testFileHash,
+				storage.TestFileHash,
 			},
 			wantErr: false,
 		},
@@ -232,7 +196,7 @@ func TestGetSeedInfoHashList(t *testing.T) {
 		{
 			name: "TestGetSeedInfoHashList",
 			wantSeedInfoHashList: []string{
-				testSeedInfoHash,
+				storage.TestSeedInfoHash,
 			},
 			wantErr: false,
 		},
@@ -260,7 +224,7 @@ func TestGetFileInfoHashList(t *testing.T) {
 		{
 			name: "TestGetFileInfoHashList",
 			wantFileInfoHashList: []string{
-				testFileInfoHash,
+				storage.TestFileInfoHash,
 			},
 			wantErr: false,
 		},
@@ -292,8 +256,8 @@ func TestSaveLocalFileInfo(t *testing.T) {
 		{
 			name: "TestSaveLocalFileInfo",
 			args: args{
-				fileInfoHash:  testFileInfoHash,
-				localFileInfo: testLocalFileInfo,
+				fileInfoHash:  storage.TestFileInfoHash,
+				localFileInfo: storage.TestLocalFileInfo,
 			},
 			wantErr: false,
 		},
@@ -320,9 +284,9 @@ func TestGetLocalFileInfoByFileInfoHash(t *testing.T) {
 		{
 			name: "TestGetLocalFileInfoByFileInfoHash",
 			args: args{
-				fileInfoHash: testFileInfoHash,
+				fileInfoHash: storage.TestFileInfoHash,
 			},
-			wantLocalFileInfo: testLocalFileInfo,
+			wantLocalFileInfo: storage.TestLocalFileInfo,
 			wantErr:           false,
 		},
 	}
