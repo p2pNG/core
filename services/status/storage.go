@@ -4,22 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/p2pNG/core/modules/database"
+	"github.com/p2pNG/core/services"
 	"github.com/p2pNG/core/services/discovery"
 	bolt "go.etcd.io/bbolt"
 )
 
-// SaveSeedInfoHash to save SeedInfoHash list
+// saveSeedInfoHash to save SeedInfoHash list
 // input the SeedInfo that the peer have
-func SaveSeedInfoHash(seedHashList []string, peer discovery.PeerInfo) (err error) {
+func saveSeedInfoHash(seedHashList []string, peer discovery.PeerInfo) (err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(SeedHashToPeerDB))
+		buk := tx.Bucket([]byte(services.SeedHashToPeerDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + SeedHashToPeerDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.SeedHashToPeerDB + "] does not exist")
 		}
 		for _, seedHash := range seedHashList {
 			// add to peer list if not exist
@@ -46,47 +47,18 @@ func SaveSeedInfoHash(seedHashList []string, peer discovery.PeerInfo) (err error
 	})
 }
 
-// GetPeerBySeedHash returns peers that has this SeedInfo match the seedHash
-func GetPeerBySeedHash(seedHash string) (peers []discovery.PeerInfo, err error) {
-	db, err := database.GetDBEngine()
-
-	if err != nil {
-		return
-	}
-	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(SeedHashToPeerDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + SeedHashToPeerDB + "] does not exist")
-		}
-		peerMapJSON := buk.Get([]byte(seedHash))
-		if peerMapJSON == nil {
-			err = errors.New("peerInfo not fond")
-		}
-		var peerMap map[string]discovery.PeerInfo
-		err := json.Unmarshal(peerMapJSON, &peerMap)
-		if err != nil {
-			return err
-		}
-		for _, peerInfo := range peerMap {
-			peers = append(peers, peerInfo)
-		}
-		return nil
-	})
-	return
-}
-
-// SaveFileInfoHash to save FileInfoHash list
+// saveFileInfoHash to save FileInfoHash list
 // input the FileInfo that the peer have
-func SaveFileInfoHash(fileInfoHashList []string, peer discovery.PeerInfo) (err error) {
+func saveFileInfoHash(fileInfoHashList []string, peer discovery.PeerInfo) (err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileInfoHashToPeerDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileInfoHashToPeerDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerDB + "] does not exist")
 		}
 		for _, fileInfoHash := range fileInfoHashList {
 			// add to peer list if not exist
@@ -113,47 +85,18 @@ func SaveFileInfoHash(fileInfoHashList []string, peer discovery.PeerInfo) (err e
 	})
 }
 
-// GetPeerByFileInfoHash returns peers that has this FileInfo match the fileInfoHash
-func GetPeerByFileInfoHash(fileInfoHash string) (peers []discovery.PeerInfo, err error) {
-	db, err := database.GetDBEngine()
-
-	if err != nil {
-		return
-	}
-	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileInfoHashToPeerDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + FileInfoHashToPeerDB + "] does not exist")
-		}
-		peerMapJSON := buk.Get([]byte(fileInfoHash))
-		if peerMapJSON == nil {
-			return errors.New("peerInfo not fond")
-		}
-		var peerMap map[string]discovery.PeerInfo
-		err := json.Unmarshal(peerMapJSON, &peerMap)
-		if err != nil {
-			return err
-		}
-		for _, peerInfo := range peerMap {
-			peers = append(peers, peerInfo)
-		}
-		return nil
-	})
-	return
-}
-
-// SaveFileHash to save FileHash list
+// saveFileHash to save FileHash list
 // input the FileHash that the peer have
-func SaveFileHash(fileHashList []string, peer discovery.PeerInfo) (err error) {
+func saveFileHash(fileHashList []string, peer discovery.PeerInfo) (err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileHashToPeerDB))
+		buk := tx.Bucket([]byte(services.FileHashToPeerDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileHashToPeerDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileHashToPeerDB + "] does not exist")
 		}
 		for _, fileHash := range fileHashList {
 			// add to peer list if not exist
@@ -180,31 +123,25 @@ func SaveFileHash(fileHashList []string, peer discovery.PeerInfo) (err error) {
 	})
 }
 
-// GetPeerByFileHash returns peers that has this FileInfo match the fileHash
-func GetPeerByFileHash(fileHash string) (peers []discovery.PeerInfo, err error) {
-	db, err := database.GetDBEngine()
+// getSeedInfoHashList returns all keys from SeedHashToSeedDB
+func getSeedInfoHashList() (seedInfoHashList []string, err error) {
+	return services.GetAllKeyFromBucket(services.SeedHashToSeedDB)
+}
 
-	if err != nil {
-		return
-	}
-	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileHashToPeerDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + FileHashToPeerDB + "] does not exist")
-		}
-		peerMapJSON := buk.Get([]byte(fileHash))
-		if peerMapJSON == nil {
-			err = errors.New("peerInfo not fond")
-		}
-		var peerMap map[string]discovery.PeerInfo
-		err := json.Unmarshal(peerMapJSON, &peerMap)
-		if err != nil {
-			return err
-		}
-		for _, peerInfo := range peerMap {
-			peers = append(peers, peerInfo)
-		}
-		return nil
-	})
-	return
+// getFileInfoHashList returns all keys from FileInfoHashToFileDB
+func getFileInfoHashList() (fileInfoHashList []string, err error) {
+	return services.GetAllKeyFromBucket(services.FileInfoHashToFileDB)
+}
+
+// getFileHashList returns all keys from FileHashToFileDB
+func getFileHashList() (fileHashList []string, err error) {
+	return services.GetAllKeyFromBucket(services.FileHashToFileDB)
+}
+
+func getPeerPieceInfoByFileHash() {
+
+}
+
+func getPeerPieceInfoList() {
+
 }

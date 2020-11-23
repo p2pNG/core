@@ -66,7 +66,7 @@ func exchangeSeeds() error {
 			if err != nil {
 				return err
 			}
-			err = SaveSeedInfoHash(seedHashList, peer)
+			err = saveSeedInfoHash(seedHashList, peer)
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func exchangeFileInfoHash() error {
 			if err != nil {
 				return err
 			}
-			err = SaveFileInfoHash(fileInfoHashList, peer)
+			err = saveFileInfoHash(fileInfoHashList, peer)
 			if err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func exchangeFileHash() error {
 			if err != nil {
 				return err
 			}
-			err = SaveFileInfoHash(fileHashList, peer)
+			err = saveFileInfoHash(fileHashList, peer)
 			if err != nil {
 				return err
 			}

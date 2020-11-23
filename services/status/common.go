@@ -11,15 +11,6 @@ import (
 	"strconv"
 )
 
-// SeedHashToPeerDB 	Key=SeedHash,Value=PeerInfo
-// FileInfoHashToPeerDB Key=FileInfoHash,Value=PeerInfo
-// FileHashToPeerDB 	Key=FileHash,Value=PeerInfo
-const (
-	SeedHashToPeerDB     = "SeedInfoHash-PeerInfo"
-	FileInfoHashToPeerDB = "FileInfoHash-PeerInfo"
-	FileHashToPeerDB     = "FileHash-PeerInfo"
-)
-
 type coreStatusConfig struct {
 	BuildName string
 }
@@ -46,7 +37,7 @@ func (p *coreStatusPlugin) PluginInfo() *core.PluginInfo {
 		Name:    "github.com/p2pNG/core/services/status",
 		Version: "0.0.0",
 		Prefix:  "/status",
-		Buckets: []string{SeedHashToPeerDB, FileInfoHashToPeerDB, FileHashToPeerDB},
+		Buckets: []string{services.SeedHashToPeerDB, services.FileInfoHashToPeerDB, services.FileHashToPeerDB},
 	}
 }
 

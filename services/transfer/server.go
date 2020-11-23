@@ -8,8 +8,8 @@ import (
 	"strconv"
 )
 
-// getFilePiece to transfer the specified localFileInfo piece
-func getFilePiece(w http.ResponseWriter, r *http.Request) {
+// serverGetFilePiece to transfer the specified localFileInfo piece
+func serverGetFilePiece(w http.ResponseWriter, r *http.Request) {
 	fileInfoHash := chi.URLParam(r, "fileInfoHash")
 	pieceIndex, err := strconv.Atoi(chi.URLParam(r, "pieceIndex"))
 	if err != nil {
@@ -17,7 +17,7 @@ func getFilePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	localFileInfo, err := GetLocalFileInfoByFileInfoHash(fileInfoHash)
+	localFileInfo, err := getLocalFileInfoByFileInfoHash(fileInfoHash)
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
 		return
@@ -32,10 +32,10 @@ func getFilePiece(w http.ResponseWriter, r *http.Request) {
 	services.WriteRespDataAsOctetStream(w, piece)
 }
 
-// getFileInfoByFileHash returns FileInfo that matches the FileHash
-func getFileInfoByFileHash(w http.ResponseWriter, r *http.Request) {
+// serverGetFileInfoByFileHash returns FileInfo that matches the FileHash
+func serverGetFileInfoByFileHash(w http.ResponseWriter, r *http.Request) {
 	fileHash := chi.URLParam(r, "fileHash")
-	fileInfoList, err := GetFileInfoByFileHash(fileHash)
+	fileInfoList, err := getFileInfoByFileHash(fileHash)
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
 		return
@@ -43,10 +43,10 @@ func getFileInfoByFileHash(w http.ResponseWriter, r *http.Request) {
 	services.WriteRespDataAsJSON(w, fileInfoList)
 }
 
-// getFileInfoByFileInfoHash returns FileInfo that matches the FileInfoHash
-func getFileInfoByFileInfoHash(w http.ResponseWriter, r *http.Request) {
+// serverGetFileInfoByFileInfoHash returns FileInfo that matches the FileInfoHash
+func serverGetFileInfoByFileInfoHash(w http.ResponseWriter, r *http.Request) {
 	fileInfoHash := chi.URLParam(r, "fileInfoHash")
-	fileInfo, err := GetFileInfoByFileInfoHash(fileInfoHash)
+	fileInfo, err := getFileInfoByFileInfoHash(fileInfoHash)
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
 		return
@@ -54,10 +54,10 @@ func getFileInfoByFileInfoHash(w http.ResponseWriter, r *http.Request) {
 	services.WriteRespDataAsJSON(w, fileInfo)
 }
 
-// getSeedInfo returns SeedInfo that matches the SeedInfoHash
-func getSeedInfo(w http.ResponseWriter, r *http.Request) {
+// serverGetSeedInfo returns SeedInfo that matches the SeedInfoHash
+func serverGetSeedInfo(w http.ResponseWriter, r *http.Request) {
 	seedInfoHash := chi.URLParam(r, "seedInfoHash")
-	seedInfoList, err := GetSeedInfo(seedInfoHash)
+	seedInfoList, err := getSeedInfoBySeedInfoHash(seedInfoHash)
 	if err != nil {
 		services.WriteErrorToResp(w, err, http.StatusInternalServerError)
 		return

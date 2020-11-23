@@ -8,8 +8,8 @@ import (
 
 func TestDownloadSeed(t *testing.T) {
 	type args struct {
-		seedInfo storage.SeedInfo
-		seedPath string
+		seedInfoHash string
+		seedPath     string
 	}
 	tests := []struct {
 		name    string
@@ -19,15 +19,15 @@ func TestDownloadSeed(t *testing.T) {
 		{
 			name: "TestDownloadSeed",
 			args: args{
-				seedInfo: storage.TestSeedInfo,
-				seedPath: storage.TestSeedPath,
+				seedInfoHash: storage.TestSeedInfoHash,
+				seedPath:     storage.TestSeedPath,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := DownloadSeed(tt.args.seedInfo, tt.args.seedPath); (err != nil) != tt.wantErr {
+			if err := DownloadSeed(tt.args.seedInfoHash, tt.args.seedPath); (err != nil) != tt.wantErr {
 				t.Errorf("DownloadSeed() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -64,6 +64,41 @@ func TestQueryFileInfoByFileInfoHash(t *testing.T) {
 			}
 			if !reflect.DeepEqual(gotFileInfo, tt.wantFileInfo) {
 				t.Errorf("QueryFileInfoByFileInfoHash() gotFileInfo = %v, want %v", gotFileInfo, tt.wantFileInfo)
+			}
+		})
+	}
+}
+
+func TestQuerySeedInfoBySeedInfoHash(t *testing.T) {
+	type args struct {
+		peerAddr     string
+		seedInfoHash string
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantSeedInfo *storage.SeedInfo
+		wantErr      bool
+	}{
+		{
+			name: "TestQuerySeedInfoBySeedInfoHash",
+			args: args{
+				peerAddr:     storage.TestPeerAddr,
+				seedInfoHash: storage.TestSeedInfoHash,
+			},
+			wantSeedInfo: &storage.TestSeedInfo,
+			wantErr:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotSeedInfo, err := QuerySeedInfoBySeedInfoHash(tt.args.peerAddr, tt.args.seedInfoHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QuerySeedInfoBySeedInfoHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotSeedInfo, tt.wantSeedInfo) {
+				t.Errorf("QuerySeedInfoBySeedInfoHash() gotSeedInfo = %v, want %v", gotSeedInfo, tt.wantSeedInfo)
 			}
 		})
 	}

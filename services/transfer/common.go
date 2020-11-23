@@ -9,17 +9,6 @@ import (
 	"net/http"
 )
 
-// SeedHashToSeedDB 		Key=SeedHash,Value=SeedInfo
-// FileInfoHashToFileDB 	Key=FileInfoHash,Value=FileInfo
-// FileHashToFileDB 		Key=FileHash,Value=FileInfo
-// FileInfoHashToLocalFileDB 	Key=FileInfoHash,Value=LocalFileInfo
-const (
-	SeedHashToSeedDB          = "SeedInfoHash-SeedInfo"
-	FileInfoHashToFileDB      = "FileInfoHash-FileInfo"
-	FileHashToFileDB          = "FileHash-FileInfo"
-	FileInfoHashToLocalFileDB = "FileInfoHash-LocalFileInfo"
-)
-
 type coreTransferConfig struct {
 	BuildName string
 }
@@ -46,7 +35,7 @@ func (p *coreTransferPlugin) PluginInfo() *core.PluginInfo {
 		Name:    "github.com/p2pNG/core/services/transfer",
 		Version: "0.0.0",
 		Prefix:  "/transfer",
-		Buckets: []string{SeedHashToSeedDB, FileInfoHashToFileDB, FileHashToFileDB, FileInfoHashToLocalFileDB},
+		Buckets: []string{services.SeedHashToSeedDB, services.FileInfoHashToFileDB, services.FileHashToFileDB, services.FileInfoHashToLocalFileDB},
 	}
 }
 
@@ -58,10 +47,10 @@ func (p *coreTransferPlugin) GetRouter() chi.Router {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
-	r.Get("/seedInfo/{seedInfoHash}", getSeedInfo)
-	r.Get("/fileInfo/fileInfoHash/{fileInfoHash}", getFileInfoByFileInfoHash)
-	r.Get("/fileInfo/fileHash/{fileHash}", getFileInfoByFileHash)
-	r.Get("/file/fileInfoHash/{fileInfoHash}/piece/{pieceIndex}/", getFilePiece)
+	r.Get("/seedInfoHash/{seedInfoHash}", serverGetSeedInfo)
+	r.Get("/fileInfo/fileInfoHash/{fileInfoHash}", serverGetFileInfoByFileInfoHash)
+	r.Get("/fileInfo/fileHash/{fileHash}", serverGetFileInfoByFileHash)
+	r.Get("/file/fileInfoHash/{fileInfoHash}/piece/{pieceIndex}/", serverGetFilePiece)
 	return r
 }
 

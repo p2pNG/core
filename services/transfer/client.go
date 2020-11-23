@@ -134,7 +134,7 @@ func (w *FileDownloader) downloadFile() error {
 		return err
 	}
 	// todo: save LocalFileInfo and provide file
-	//return SaveLocalFileInfo(w.fileInfoHash, *localFileInfo)
+	//return saveLocalFileInfo(w.fileInfoHash, *localFileInfo)
 	return nil
 }
 
@@ -208,7 +208,19 @@ func (w *FileDownloader) DownloadPiece(peerIndex int, pieceIndex int) error {
 }
 
 // DownloadSeed download all files in seed
-func DownloadSeed(seedInfo storage.SeedInfo, seedPath string) error {
+func DownloadSeed(seedInfoHash string, seedPath string) error {
+
+	peers, err := getPeerBySeedHash(seedInfoHash)
+	if err != nil {
+		return err
+	}
+	// todo : peer selection
+	peer := peers[0].Address.String()
+
+	seedInfo, err := QuerySeedInfoBySeedInfoHash(peer, seedInfoHash)
+	if err != nil {
+		return err
+	}
 
 	if utils.IsFilePathExist(seedPath) {
 		return errors.New("seed file is already exist:" + seedPath)
@@ -242,7 +254,27 @@ func QueryFileInfoByFileInfoHash(peerAddr string, fileInfoHash string) (fileInfo
 	if resp.StatusCode == http.StatusOK {
 		err = services.ReadJSONBody(resp, fileInfo)
 	} else {
-		err = errors.New(resp.Header.Get(services.P2PNGMsg))
+		err = errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
+	}
+	return
+}
+
+// QuerySeedInfoBySeedInfoHash returns seedInfoHash that matches seedInfoHash from peerAddr
+func QuerySeedInfoBySeedInfoHash(peerAddr string, seedInfoHash string) (seedInfo *storage.SeedInfo, err error) {
+	client, err := services.GetHttpClient()
+	if err != nil {
+		return
+	}
+
+	resp, err := client.Get(peerAddr + "/transfer/seedInfo/" + seedInfoHash)
+	if err != nil {
+		return nil, err
+	}
+	seedInfo = new(storage.SeedInfo)
+	if resp.StatusCode == http.StatusOK {
+		err = services.ReadJSONBody(resp, seedInfo)
+	} else {
+		err = errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
 	}
 	return
 }
@@ -264,7 +296,7 @@ func sequencePeerSelector(peers []string) func() (peer string) {
 	}
 }
 
-func downloadSeed(seedInfo storage.SeedInfo, seedPath string, selector func(peers []string) func() (peer string)) error {
+func downloadSeed(seedInfo *storage.SeedInfo, seedPath string, selector func(peers []string) func() (peer string)) error {
 	selectPeer := selector(seedInfo.WellKnown)
 	for _, item := range seedInfo.Files {
 		fileInfo, err := QueryFileInfoByFileInfoHash(selectPeer(), item.RecFileInfoHash)

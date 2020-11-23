@@ -4,6 +4,8 @@ import (
 	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
+	"github.com/p2pNG/core/services"
+	"github.com/p2pNG/core/services/discovery"
 	"go.uber.org/zap"
 	"reflect"
 	"testing"
@@ -20,7 +22,7 @@ func TestMain(m *testing.M) {
 		logging.Log().Error("db err", zap.Error(err))
 		panic(err)
 	}
-	err = database.InitBuckets(db, []string{SeedHashToSeedDB, FileInfoHashToFileDB, FileHashToFileDB, FileInfoHashToLocalFileDB, "discovery_registry"})
+	err = database.InitBuckets(db, []string{services.SeedHashToSeedDB, services.FileInfoHashToFileDB, services.FileHashToFileDB, services.FileInfoHashToLocalFileDB, "discovery_registry"})
 	if err != nil {
 		logging.Log().Error("db err", zap.Error(err))
 		panic(err)
@@ -47,8 +49,8 @@ func TestSaveFileInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := SaveFileInfo(tt.args.file); (err != nil) != tt.wantErr {
-				t.Errorf("SaveFileInfo() error = %v, wantErr %v", err, tt.wantErr)
+			if err := saveFileInfo(tt.args.file); (err != nil) != tt.wantErr {
+				t.Errorf("saveFileInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -73,8 +75,8 @@ func TestSaveSeedInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := SaveSeedInfo(tt.args.seed); (err != nil) != tt.wantErr {
-				t.Errorf("SaveSeedInfo() error = %v, wantErr %v", err, tt.wantErr)
+			if err := saveSeedInfo(tt.args.seed); (err != nil) != tt.wantErr {
+				t.Errorf("saveSeedInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -101,13 +103,13 @@ func TestGetFileInfoByFileInfoHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotFiles, err := GetFileInfoByFileInfoHash(tt.args.fileInfoHash)
+			gotFiles, err := getFileInfoByFileInfoHash(tt.args.fileInfoHash)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetFileInfoByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getFileInfoByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotFiles, tt.wantFiles) {
-				t.Errorf("GetFileInfoByFileInfoHash() gotFiles = %v, want %v", gotFiles, tt.wantFiles)
+				t.Errorf("getFileInfoByFileInfoHash() gotFiles = %v, want %v", gotFiles, tt.wantFiles)
 			}
 		})
 	}
@@ -134,13 +136,13 @@ func TestGetSeedInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotSeeds, err := GetSeedInfo(tt.args.seedInfoHash)
+			gotSeeds, err := getSeedInfoBySeedInfoHash(tt.args.seedInfoHash)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetSeedInfo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getSeedInfoBySeedInfoHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotSeeds, tt.wantSeeds) {
-				t.Errorf("GetSeedInfo() gotSeeds = %v, want %v", gotSeeds, tt.wantSeeds)
+				t.Errorf("getSeedInfoBySeedInfoHash() gotSeeds = %v, want %v", gotSeeds, tt.wantSeeds)
 			}
 		})
 	}
@@ -169,97 +171,13 @@ func TestGetFileInfoByFileHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotFiles, err := GetFileInfoByFileHash(tt.args.fileHash)
+			gotFiles, err := getFileInfoByFileHash(tt.args.fileHash)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetFileInfoByFileHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getFileInfoByFileHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotFiles, tt.wantFiles) {
-				t.Errorf("GetFileInfoByFileHash() gotFiles = %v, want %v", gotFiles, tt.wantFiles)
-			}
-		})
-	}
-}
-
-func TestGetFileHashList(t *testing.T) {
-	tests := []struct {
-		name             string
-		wantFileHashList []string
-		wantErr          bool
-	}{
-		{
-			name: "TestGetFileHashList",
-			wantFileHashList: []string{
-				storage.TestFileHash,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotFileHashList, err := GetFileHashList()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetFileHashList() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotFileHashList, tt.wantFileHashList) {
-				t.Errorf("GetFileHashList() gotFileHashList = %v, want %v", gotFileHashList, tt.wantFileHashList)
-			}
-		})
-	}
-}
-
-func TestGetSeedInfoHashList(t *testing.T) {
-	tests := []struct {
-		name                 string
-		wantSeedInfoHashList []string
-		wantErr              bool
-	}{
-		{
-			name: "TestGetSeedInfoHashList",
-			wantSeedInfoHashList: []string{
-				storage.TestSeedInfoHash,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotSeedInfoHashList, err := GetSeedInfoHashList()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetSeedInfoHashList() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotSeedInfoHashList, tt.wantSeedInfoHashList) {
-				t.Errorf("GetSeedInfoHashList() gotSeedInfoHashList = %v, want %v", gotSeedInfoHashList, tt.wantSeedInfoHashList)
-			}
-		})
-	}
-}
-
-func TestGetFileInfoHashList(t *testing.T) {
-	tests := []struct {
-		name                 string
-		wantFileInfoHashList []string
-		wantErr              bool
-	}{
-		{
-			name: "TestGetFileInfoHashList",
-			wantFileInfoHashList: []string{
-				storage.TestFileInfoHash,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotFileInfoHashList, err := GetFileInfoHashList()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetFileInfoHashList() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotFileInfoHashList, tt.wantFileInfoHashList) {
-				t.Errorf("GetFileInfoHashList() gotFileInfoHashList = %v, want %v", gotFileInfoHashList, tt.wantFileInfoHashList)
+				t.Errorf("getFileInfoByFileHash() gotFiles = %v, want %v", gotFiles, tt.wantFiles)
 			}
 		})
 	}
@@ -286,8 +204,8 @@ func TestSaveLocalFileInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := SaveLocalFileInfo(tt.args.fileInfoHash, tt.args.localFileInfo); (err != nil) != tt.wantErr {
-				t.Errorf("SaveLocalFileInfo() error = %v, wantErr %v", err, tt.wantErr)
+			if err := saveLocalFileInfo(tt.args.fileInfoHash, tt.args.localFileInfo); (err != nil) != tt.wantErr {
+				t.Errorf("saveLocalFileInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -314,13 +232,118 @@ func TestGetLocalFileInfoByFileInfoHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotLocalFileInfo, err := GetLocalFileInfoByFileInfoHash(tt.args.fileInfoHash)
+			gotLocalFileInfo, err := getLocalFileInfoByFileInfoHash(tt.args.fileInfoHash)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetLocalFileInfoByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getLocalFileInfoByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotLocalFileInfo, tt.wantLocalFileInfo) {
-				t.Errorf("GetLocalFileInfoByFileInfoHash() gotLocalFileInfo = %v, want %v", gotLocalFileInfo, tt.wantLocalFileInfo)
+				t.Errorf("getLocalFileInfoByFileInfoHash() gotLocalFileInfo = %v, want %v", gotLocalFileInfo, tt.wantLocalFileInfo)
+			}
+		})
+	}
+}
+
+func TestGetPeerBySeedHash(t *testing.T) {
+	type args struct {
+		seedHash string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantPeers []discovery.PeerInfo
+		wantErr   bool
+	}{
+		{
+			name: "TestGetPeerBySeedHash",
+			args: args{
+				seedHash: storage.TestSeedInfoHash,
+			},
+			wantPeers: []discovery.PeerInfo{
+				storage.TestPeerInfo,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPeers, err := getPeerBySeedHash(tt.args.seedHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getPeerBySeedHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPeers, tt.wantPeers) {
+				t.Errorf("getPeerBySeedHash() gotPeers = %v, want %v", gotPeers, tt.wantPeers)
+			}
+		})
+	}
+}
+
+func TestGetPeerByFileInfoHash(t *testing.T) {
+	type args struct {
+		fileInfoHash string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantPeers []discovery.PeerInfo
+		wantErr   bool
+	}{
+		{
+			name: "TestGetPeerByFileInfoHash",
+			args: args{
+				fileInfoHash: storage.TestFileInfoHash,
+			},
+			wantPeers: []discovery.PeerInfo{
+				storage.TestPeerInfo,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPeers, err := getPeerByFileInfoHash(tt.args.fileInfoHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getPeerByFileInfoHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPeers, tt.wantPeers) {
+				t.Errorf("getPeerByFileInfoHash() gotPeers = %v, want %v", gotPeers, tt.wantPeers)
+			}
+		})
+	}
+}
+
+func TestGetPeerByFileHash(t *testing.T) {
+	type args struct {
+		fileHash string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantPeers []discovery.PeerInfo
+		wantErr   bool
+	}{
+		{
+			name: "TestGetPeerByFileHash",
+			args: args{
+				fileHash: storage.TestFileHash,
+			},
+			wantPeers: []discovery.PeerInfo{
+				storage.TestPeerInfo,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPeers, err := getPeerByFileHash(tt.args.fileHash)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getPeerByFileHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPeers, tt.wantPeers) {
+				t.Errorf("getPeerByFileHash() gotPeers = %v, want %v", gotPeers, tt.wantPeers)
 			}
 		})
 	}

@@ -30,6 +30,23 @@ const (
 	NoPermissions string = "3001"
 )
 
+// SeedHashToSeedDB 		Key=SeedHash,Value=SeedInfo
+// FileInfoHashToFileDB 	Key=FileInfoHash,Value=FileInfo
+// FileHashToFileDB 		Key=FileHash,Value=FileInfo
+// FileInfoHashToLocalFileDB 	Key=FileInfoHash,Value=LocalFileInfo
+// SeedHashToPeerDB 	Key=SeedHash,Value=PeerInfo
+// FileInfoHashToPeerDB Key=FileInfoHash,Value=PeerInfo
+// FileHashToPeerDB 	Key=FileHash,Value=PeerInfo
+const (
+	SeedHashToSeedDB          = "SeedInfoHash-SeedInfo"
+	FileInfoHashToFileDB      = "FileInfoHash-FileInfo"
+	FileHashToFileDB          = "FileHash-FileInfo"
+	FileInfoHashToLocalFileDB = "FileInfoHash-LocalFileInfo"
+	SeedHashToPeerDB          = "SeedInfoHash-PeerInfo"
+	FileInfoHashToPeerDB      = "FileInfoHash-PeerInfo"
+	FileHashToPeerDB          = "FileHash-PeerInfo"
+)
+
 // GetHttpClient returns a http client
 func GetHttpClient() (client *http.Client, err error) {
 	client, _, err = request.GetDefaultHTTPClient()

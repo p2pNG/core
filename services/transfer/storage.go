@@ -6,35 +6,21 @@ import (
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
+	"github.com/p2pNG/core/services/discovery"
 	bolt "go.etcd.io/bbolt"
 )
 
-// GetSeedInfoHashList returns all keys from SeedHashToSeedDB
-func GetSeedInfoHashList() (seedInfoHashList []string, err error) {
-	return services.GetAllKeyFromBucket(SeedHashToSeedDB)
-}
-
-// GetFileInfoHashList returns all keys from FileInfoHashToFileDB
-func GetFileInfoHashList() (fileInfoHashList []string, err error) {
-	return services.GetAllKeyFromBucket(FileInfoHashToFileDB)
-}
-
-// GetFileHashList returns all keys from FileHashToFileDB
-func GetFileHashList() (fileHashList []string, err error) {
-	return services.GetAllKeyFromBucket(FileHashToFileDB)
-}
-
-// GetSeedInfo returns SeedInfo that matches seedInfoHash
-func GetSeedInfo(seedInfoHash string) (seed storage.SeedInfo, err error) {
+// getSeedInfoBySeedInfoHash returns SeedInfo that matches seedInfoHash
+func getSeedInfoBySeedInfoHash(seedInfoHash string) (seed storage.SeedInfo, err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(SeedHashToSeedDB))
+		buk := tx.Bucket([]byte(services.SeedHashToSeedDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + SeedHashToSeedDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.SeedHashToSeedDB + "] does not exist")
 		}
 		seedJSON := buk.Get([]byte(seedInfoHash))
 		if seedJSON == nil {
@@ -45,17 +31,17 @@ func GetSeedInfo(seedInfoHash string) (seed storage.SeedInfo, err error) {
 	return
 }
 
-// GetFileInfoByFileInfoHash returns FileInfo that matches fileInfoHash
-func GetFileInfoByFileInfoHash(fileInfoHash string) (file storage.FileInfo, err error) {
+// getFileInfoByFileInfoHash returns FileInfo that matches fileInfoHash
+func getFileInfoByFileInfoHash(fileInfoHash string) (file storage.FileInfo, err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileInfoHashToFileDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToFileDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileInfoHashToFileDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToFileDB + "] does not exist")
 		}
 		fileJSON := buk.Get([]byte(fileInfoHash))
 		if fileJSON == nil {
@@ -66,17 +52,17 @@ func GetFileInfoByFileInfoHash(fileInfoHash string) (file storage.FileInfo, err 
 	return
 }
 
-// GetFileInfoByFileHash returns FileInfo that matches fileHash
-func GetFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error) {
+// getFileInfoByFileHash returns FileInfo that matches fileHash
+func getFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileHashToFileDB))
+		buk := tx.Bucket([]byte(services.FileHashToFileDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileHashToFileDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileHashToFileDB + "] does not exist")
 		}
 		// get fileInfoHashMap from bucket
 		fileInfoHashMapJSON := buk.Get([]byte(fileHash))
@@ -95,17 +81,17 @@ func GetFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error
 	return
 }
 
-// SaveSeedInfo save SeedInfo to SeedHashToSeedDB
-func SaveSeedInfo(seedInfo storage.SeedInfo) error {
+// saveSeedInfo save SeedInfo to SeedHashToSeedDB
+func saveSeedInfo(seedInfo storage.SeedInfo) error {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return err
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(SeedHashToSeedDB))
+		buk := tx.Bucket([]byte(services.SeedHashToSeedDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + SeedHashToSeedDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.SeedHashToSeedDB + "] does not exist")
 		}
 		seedInfoHash := storage.HashSeedInfo(seedInfo)
 		jsonData, err := json.Marshal(seedInfo)
@@ -116,8 +102,8 @@ func SaveSeedInfo(seedInfo storage.SeedInfo) error {
 	})
 }
 
-// SaveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB
-func SaveFileInfo(fileInfo storage.FileInfo) error {
+// saveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB
+func saveFileInfo(fileInfo storage.FileInfo) error {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
@@ -125,9 +111,9 @@ func SaveFileInfo(fileInfo storage.FileInfo) error {
 	}
 	return db.Update(func(tx *bolt.Tx) error {
 		// save FileInfoHash
-		buk := tx.Bucket([]byte(FileInfoHashToFileDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToFileDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileInfoHashToFileDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToFileDB + "] does not exist")
 		}
 		fileInfoHash := storage.HashFileInfo(fileInfo)
 		jsonData, err := json.Marshal(fileInfo)
@@ -139,9 +125,9 @@ func SaveFileInfo(fileInfo storage.FileInfo) error {
 			return err
 		}
 		// save FileHash
-		buk = tx.Bucket([]byte(FileHashToFileDB))
+		buk = tx.Bucket([]byte(services.FileHashToFileDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileHashToFileDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileHashToFileDB + "] does not exist")
 		}
 		// get fileInfoHashMap from bucket
 		fileInfoHashMapJSON := buk.Get([]byte(fileInfo.Hash))
@@ -166,17 +152,17 @@ func SaveFileInfo(fileInfo storage.FileInfo) error {
 	})
 }
 
-// SaveLocalFileInfo save LocalFileInfo to FileInfoHashToLocalFileDB
-func SaveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo) error {
+// saveLocalFileInfo save LocalFileInfo to FileInfoHashToLocalFileDB
+func saveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo) error {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return err
 	}
 	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileInfoHashToLocalFileDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToLocalFileDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileInfoHashToLocalFileDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToLocalFileDB + "] does not exist")
 		}
 		jsonData, err := json.Marshal(localFileInfo)
 		if err != nil {
@@ -186,17 +172,17 @@ func SaveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo)
 	})
 }
 
-// GetLocalFileInfoByFileInfoHash returns LocalFileInfo that matches fileHash
-func GetLocalFileInfoByFileInfoHash(fileInfoHash string) (localFileInfo storage.LocalFileInfo, err error) {
+// getLocalFileInfoByFileInfoHash returns LocalFileInfo that matches fileHash
+func getLocalFileInfoByFileInfoHash(fileInfoHash string) (localFileInfo storage.LocalFileInfo, err error) {
 	db, err := database.GetDBEngine()
 
 	if err != nil {
 		return
 	}
 	err = db.View(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(FileInfoHashToLocalFileDB))
+		buk := tx.Bucket([]byte(services.FileInfoHashToLocalFileDB))
 		if buk == nil {
-			return errors.New("database error : bucket [" + FileInfoHashToLocalFileDB + "] does not exist")
+			return errors.New("database error : bucket [" + services.FileInfoHashToLocalFileDB + "] does not exist")
 		}
 
 		if localFileInfoJSON := buk.Get([]byte(fileInfoHash)); localFileInfoJSON != nil {
@@ -204,6 +190,93 @@ func GetLocalFileInfoByFileInfoHash(fileInfoHash string) (localFileInfo storage.
 			if err != nil {
 				return err
 			}
+		}
+		return nil
+	})
+	return
+}
+
+// getPeerBySeedHash returns peers that has this SeedInfo match the seedHash
+func getPeerBySeedHash(seedHash string) (peers []discovery.PeerInfo, err error) {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.SeedHashToPeerDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.SeedHashToPeerDB + "] does not exist")
+		}
+		peerMapJSON := buk.Get([]byte(seedHash))
+		if peerMapJSON == nil {
+			err = errors.New("peerInfo not fond")
+		}
+		var peerMap map[string]discovery.PeerInfo
+		err := json.Unmarshal(peerMapJSON, &peerMap)
+		if err != nil {
+			return err
+		}
+		for _, peerInfo := range peerMap {
+			peers = append(peers, peerInfo)
+		}
+		return nil
+	})
+	return
+}
+
+// getPeerByFileInfoHash returns peers that has this FileInfo match the fileInfoHash
+func getPeerByFileInfoHash(fileInfoHash string) (peers []discovery.PeerInfo, err error) {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerDB + "] does not exist")
+		}
+		peerMapJSON := buk.Get([]byte(fileInfoHash))
+		if peerMapJSON == nil {
+			return errors.New("peerInfo not fond")
+		}
+		var peerMap map[string]discovery.PeerInfo
+		err := json.Unmarshal(peerMapJSON, &peerMap)
+		if err != nil {
+			return err
+		}
+		for _, peerInfo := range peerMap {
+			peers = append(peers, peerInfo)
+		}
+		return nil
+	})
+	return
+}
+
+// getPeerByFileHash returns peers that has this FileInfo match the fileHash
+func getPeerByFileHash(fileHash string) (peers []discovery.PeerInfo, err error) {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return
+	}
+	err = db.View(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileHashToPeerDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileHashToPeerDB + "] does not exist")
+		}
+		peerMapJSON := buk.Get([]byte(fileHash))
+		if peerMapJSON == nil {
+			err = errors.New("peerInfo not fond")
+		}
+		var peerMap map[string]discovery.PeerInfo
+		err := json.Unmarshal(peerMapJSON, &peerMap)
+		if err != nil {
+			return err
+		}
+		for _, peerInfo := range peerMap {
+			peers = append(peers, peerInfo)
 		}
 		return nil
 	})
