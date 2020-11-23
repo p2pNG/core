@@ -59,7 +59,7 @@ func GetFileInfoByFileInfoHash(fileInfoHash string) (file storage.FileInfo, err 
 		}
 		fileJSON := buk.Get([]byte(fileInfoHash))
 		if fileJSON == nil {
-			return nil
+			return errors.New("file info not found")
 		}
 		return json.Unmarshal(fileJSON, &file)
 	})
