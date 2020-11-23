@@ -4,6 +4,7 @@ import (
 	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/internal/utils"
 	bolt "go.etcd.io/bbolt"
+	"os"
 	"go.uber.org/zap"
 	"path"
 	"time"
@@ -13,6 +14,10 @@ var defaultDBEngine *bolt.DB
 
 // OpenDB open or create a DB engine
 func OpenDB(filename string) (err error) {
+	err = os.MkdirAll(utils.AppDataDir(), 0755)
+	if err != nil {
+		return
+	}
 	dbPath := path.Join(utils.AppDataDir(), filename)
 	opts := bolt.DefaultOptions
 	opts.Timeout = time.Second * 5
@@ -48,5 +53,6 @@ func CloseDBEngine() {
 		if err := defaultDBEngine.Close(); err != nil {
 			logging.Log().Error("close database failed", zap.Error(err))
 		}
+		defaultDBEngine = nil
 	}
 }
