@@ -37,7 +37,7 @@ var TestModifyTime = getTestModifyTime()
 var TestPiece = getTestPiece()
 
 // TestPieceIndex piece index to test download
-var TestPieceIndex int64 = 0
+var TestPieceIndex int64
 
 // TestSeedWellKnown well known for TestSeedInfo
 var TestSeedWellKnown = []string{
