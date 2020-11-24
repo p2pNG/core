@@ -123,7 +123,7 @@ func NewFileDownloader(fileInfo storage.FileInfo, desFilePath string) (*FileDown
 // DownloadFile downloads file with random peer selection algorithm
 func (w *FileDownloader) DownloadFile() (err error) {
 	ch := make(chan error)
-	t := time.NewTicker(time.Second * 3)
+	t := time.NewTicker(time.Second * 15)
 	go w.downloadFile(ch)
 	select {
 	case err = <-ch:
@@ -134,7 +134,7 @@ func (w *FileDownloader) DownloadFile() (err error) {
 	}
 	if err != nil {
 		w.fileWriter.Clean()
-		logging.Log().Error("fail to DownloadFile file：", zap.Error(err))
+		logging.Log().Error("fail to download file：", zap.Error(err))
 	}
 	return err
 }
@@ -167,7 +167,7 @@ func (w *FileDownloader) downloadFile(ch chan error) {
 	// get LocalFileInfo and save
 	_, err := w.fileWriter.Complete()
 	if err != nil {
-		ch <- nil
+		ch <- err
 	}
 	// todo: save LocalFileInfo and provide file
 	//return saveLocalFileInfo(w.fileInfoHash, *localFileInfo)
@@ -254,6 +254,7 @@ func queryFileInfo(fileInfoHash string, peers []discovery.PeerInfo, ch chan *sto
 		fileInfo, err := QueryFileInfoByFileInfoHash(peerAddr, fileInfoHash)
 		if err == nil {
 			ch <- fileInfo
+			return
 		} else {
 			logging.Log().Warn("fail to query file info from "+peerAddr, zap.Error(err))
 		}
