@@ -1,7 +1,6 @@
 package status
 
 import (
-	"github.com/p2pNG/core/services/discovery"
 	"testing"
 )
 
@@ -76,29 +75,6 @@ func Test_exchangeSeeds(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := exchangeSeeds(); (err != nil) != tt.wantErr {
 				t.Errorf("exchangeSeeds() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_visitPeers(t *testing.T) {
-	type args struct {
-		fn func(peer discovery.PeerInfo) error
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Test_visitPeers",
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := visitPeers(tt.args.fn); (err != nil) != tt.wantErr {
-				t.Errorf("visitPeers() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
