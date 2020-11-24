@@ -7,42 +7,72 @@ import (
 	"time"
 )
 
-// path
 var testDataPath = "./test/testdata"
-var TestFilePath = testDataPath + "/TestFile.txt"
-var TestSeedPath string = testDataPath + "/Download/TestSeed"
-var TestSeedFilePath = "/TestFile/TestFile_Downloaded.txt"
+var testSeedFilePath = "/TestFile/TestFile_Downloaded.txt"
 
-// attribute
-var TestPeerAddr string = "https://localhost:6480"
+// TestFilePath path to provide file resource
+var TestFilePath = testDataPath + "/TestFile.txt"
+
+// TestDownloadFilePath path to test file download
+var TestDownloadFilePath = testDataPath + "/Download/DownloadedFile.txt"
+
+// TestSeedPath path to download seed file
+var TestSeedPath = testDataPath + "/Download/TestSeed"
+
+// TestPeerAddr peer address
+var TestPeerAddr = "https://localhost:6480"
+
+// TestPieceLength piece length for TestFileInfo
 var TestPieceLength int64 = 2048
+
+// TestFileSize file size for TestFileInfo
 var TestFileSize int64 = 6332
-var TestModifyTime time.Time = getTestModifyTime()
-var TestPiece []byte = getTestPiece()
+
+// TestModifyTime modify time for TestLocalFileInfo
+var TestModifyTime = getTestModifyTime()
+
+// TestPiece piece data for test
+var TestPiece = getTestPiece()
+
+// TestPieceIndex piece index to test download
 var TestPieceIndex int64 = 0
+
+// TestSeedWellKnown well known for TestSeedInfo
 var TestSeedWellKnown = []string{
 	TestPeerAddr,
 }
+
+// TestFileWellKnown well known for TestFileInfo
 var TestFileWellKnown = []string{
 	TestPeerAddr,
 }
+
+// TestPieceInfo piece info for TestPeerPieceInfo
 var TestPieceInfo = []byte{
 	1, 1, 1, 1,
 }
 
-// hash
+// TestPieceHash piece hash at TestFileInfo.PieceHash
 var TestPieceHash = TestFileInfo.PieceHash[TestPieceIndex]
+
+// TestFileHash file hash of TestFilePath
 var TestFileHash = "uNFYuGhEqWXuRalepnlm0ZNopsNDVI403aYZARGoNucZ5JWXmlmKaGw1hVCT--qLzskkPiNEkQvsuU5P1ADftA=="
-var TestFileInfoHash string = "zfS2uU_kPwnt-U0NABEKRg5ICJbTOf7o25tGVSmlqYqMdZTWANf734X3mMiE8KOR3LXbvWLbRYQCzbKhRK-Ijg=="
-var TestPieceHashList []string = []string{
+
+// TestFileInfoHash file info hash of TestFileInfo
+var TestFileInfoHash = "zfS2uU_kPwnt-U0NABEKRg5ICJbTOf7o25tGVSmlqYqMdZTWANf734X3mMiE8KOR3LXbvWLbRYQCzbKhRK-Ijg=="
+
+// TestPieceHashList piece hash list of TestFileInfo
+var TestPieceHashList = []string{
 	"uM6epHato4tAUIfcw7jfJJpE-bbhkfuIQJ_n0NOWqRQ=",
 	"b52XLEZ2ycisrNPtrs0i9yq8d-PhgvFx-vv7aJZjEGk=",
 	"Fur0Wg5ENkjW2QXxAPMLIgwdO-1KjQ48DO6SkzK5lPQ=",
 	"Bq6-sMIDeGXQ3T2kLDMLGXklJTUrEBxaoWB2yf75cug=",
 }
+
+// TestSeedInfoHash seed info hash of SeedInfo
 var TestSeedInfoHash = "Ln3rQCfCE5P1MN-DtFtJOjhk52oyIrcTBEtem4pahouG_zFSah1HwPc3h8Rjp80PCY5TdegXHu5TEZE1wfngFg=="
 
-// struct
+// TestFileInfo for test
 var TestFileInfo = FileInfo{
 	Size:        TestFileSize,
 	Hash:        TestFileHash,
@@ -50,16 +80,20 @@ var TestFileInfo = FileInfo{
 	PieceHash:   TestPieceHashList,
 	WellKnown:   TestFileWellKnown,
 }
+
+// TestLocalFileInfo for test
 var TestLocalFileInfo = LocalFileInfo{
 	FileInfo:   TestFileInfo,
 	Path:       TestFilePath,
 	LastModify: TestModifyTime,
 }
+
+// TestSeedInfo for test
 var TestSeedInfo = SeedInfo{
 	Title: "TestSeedInfoTitle",
 	Files: []SeedFileItem{
 		{
-			Path:            TestSeedFilePath,
+			Path:            testSeedFilePath,
 			Size:            TestFileSize,
 			Hash:            TestFileHash,
 			RecFileInfoHash: TestFileInfoHash,
@@ -69,17 +103,21 @@ var TestSeedInfo = SeedInfo{
 	ExtraInfo: nil,
 	WellKnown: TestSeedWellKnown,
 }
+
+// TestPeerInfo for test
 var TestPeerInfo = discovery.PeerInfo{
 	Address:  net.ParseIP("127.0.0.1"),
-	Port:     6060,
+	Port:     6480,
 	DNS:      []string{"dns"},
 	LastSeen: time.Date(2020, 11, 19, 21, 30, 0, 0, time.Local),
 }
 
+// TestPeerPieceInfo for test
 var TestPeerPieceInfo = PeerPieceInfo{
 	TestPeerAddr: TestPieceInfo,
 }
 
+// TestPPInfoList for test
 var TestPPInfoList = map[string]PeerPieceInfo{
 	TestFileInfoHash: TestPeerPieceInfo,
 }

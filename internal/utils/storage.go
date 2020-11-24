@@ -127,11 +127,7 @@ func AppDataDir() string {
 // IsFilePathExist returns true if the file is exist otherwise false
 func IsFilePathExist(filePath string) bool {
 	_, err := os.Stat(filePath)
-	if err != nil && os.IsNotExist(err) {
-		return false
-	} else {
-		return true
-	}
+	return !(err != nil && os.IsNotExist(err))
 }
 
 // RemoveFilePath remove a file or dir from disk

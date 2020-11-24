@@ -9,7 +9,7 @@ import (
 
 // QueryFileInfoByFileInfoHash returns fileInfo that matches fileInfoHash from peerAddr
 func QueryFileInfoByFileInfoHash(peerAddr string, fileInfoHash string) (fileInfo *storage.FileInfo, err error) {
-	client, err := services.GetHttpClient()
+	client, err := services.GetHTTPClient()
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func QueryFileInfoByFileInfoHash(peerAddr string, fileInfoHash string) (fileInfo
 
 // QueryFileInfoByFileHash returns fileInfo that matches fileInfoHash from peerAddr
 func QueryFileInfoByFileHash(peerAddr string, fileHash string) (fileInfo []storage.FileInfo, err error) {
-	client, err := services.GetHttpClient()
+	client, err := services.GetHTTPClient()
 	if err != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func QueryFileInfoByFileHash(peerAddr string, fileHash string) (fileInfo []stora
 
 // QuerySeedInfoBySeedInfoHash returns seedInfoHash that matches seedInfoHash from peerAddr
 func QuerySeedInfoBySeedInfoHash(peerAddr string, seedInfoHash string) (seedInfo *storage.SeedInfo, err error) {
-	client, err := services.GetHttpClient()
+	client, err := services.GetHTTPClient()
 	if err != nil {
 		return
 	}
