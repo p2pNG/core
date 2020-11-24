@@ -1,7 +1,6 @@
 package status
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/modules/storage"
@@ -28,24 +27,19 @@ func visitPeers(fn func(peer discovery.PeerInfo) error) error {
 
 // exchangePeers query peers from discovered nodes and save
 func exchangePeers() error {
-	return visitPeers(func(node discovery.PeerInfo) error {
-		client, err := services.GetHttpClient()
+	return visitPeers(func(peer discovery.PeerInfo) error {
+		client, err := services.GetHTTPClient()
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(node.Address.String() + "/status/peer")
+		resp, err := client.Get(services.PeerInfoToStringAddr(peer) + "/status/peer")
 		if err != nil {
 			return err
 		}
 
 		if resp.StatusCode == http.StatusOK {
-			var body []byte
-			_, err = resp.Body.Read(body)
-			if err != nil {
-				return err
-			}
 			var peers []discovery.PeerInfo
-			err = json.Unmarshal(body, &peers)
+			err = services.ReadJSONBody(resp, &peers)
 			if err != nil {
 				return err
 			}
@@ -63,23 +57,18 @@ func exchangePeers() error {
 // exchangeSeeds query SeedInfoHash list from discovered nodes and save
 func exchangeSeeds() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := services.GetHttpClient()
+		client, err := services.GetHTTPClient()
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(peer.Address.String() + "/status/seed")
+		resp, err := client.Get(services.PeerInfoToStringAddr(peer) + "/status/seed")
 		if err != nil {
 			return err
 		}
 
 		if resp.StatusCode == http.StatusOK {
-			var body []byte
-			_, err = resp.Body.Read(body)
-			if err != nil {
-				return err
-			}
 			var seedHashList []string
-			err = json.Unmarshal(body, &seedHashList)
+			err = services.ReadJSONBody(resp, &seedHashList)
 			if err != nil {
 				return err
 			}
@@ -97,23 +86,19 @@ func exchangeSeeds() error {
 // exchangeFileInfoHash query FileInfoHash list from discovered nodes and save
 func exchangeFileInfoHash() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := services.GetHttpClient()
+		client, err := services.GetHTTPClient()
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(peer.Address.String() + "/status/fileInfoHash")
+		resp, err := client.Get(services.PeerInfoToStringAddr(peer) + "/status/fileInfoHash")
 		if err != nil {
 			return err
 		}
 
 		if resp.StatusCode == http.StatusOK {
-			var body []byte
-			_, err = resp.Body.Read(body)
-			if err != nil {
-				return err
-			}
+
 			var fileInfoHashList []string
-			err = json.Unmarshal(body, &fileInfoHashList)
+			err = services.ReadJSONBody(resp, &fileInfoHashList)
 			if err != nil {
 				return err
 			}
@@ -131,23 +116,18 @@ func exchangeFileInfoHash() error {
 // exchangeFileHash query FileHash list from discovered nodes and save
 func exchangeFileHash() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := services.GetHttpClient()
+		client, err := services.GetHTTPClient()
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(peer.Address.String() + "/status/fileHash")
+		resp, err := client.Get(services.PeerInfoToStringAddr(peer) + "/status/fileHash")
 		if err != nil {
 			return err
 		}
 
 		if resp.StatusCode == http.StatusOK {
-			var body []byte
-			_, err = resp.Body.Read(body)
-			if err != nil {
-				return err
-			}
 			var fileHashList []string
-			err = json.Unmarshal(body, &fileHashList)
+			err := services.ReadJSONBody(resp, &fileHashList)
 			if err != nil {
 				return err
 			}
@@ -165,18 +145,18 @@ func exchangeFileHash() error {
 // exchangePeerPieceInfo query PeerPieceInfo list from discovered nodes and save
 func exchangePeerPieceInfo() error {
 	return visitPeers(func(peer discovery.PeerInfo) error {
-		client, err := services.GetHttpClient()
+		client, err := services.GetHTTPClient()
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(peer.Address.String() + "/status/peerPieceInfo")
+		resp, err := client.Get(services.PeerInfoToStringAddr(peer) + "/status/peerPieceInfo")
 		if err != nil {
 			return err
 		}
 
 		if resp.StatusCode == http.StatusOK {
-			ppInfoList := make(map[string]storage.PeerPieceInfo)
-			err = services.ReadJSONBody(resp, ppInfoList)
+			var ppInfoList map[string]storage.PeerPieceInfo
+			err = services.ReadJSONBody(resp, &ppInfoList)
 			if err != nil {
 				return err
 			}
