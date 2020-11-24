@@ -19,6 +19,7 @@ import (
 import (
 	// Services should import by core-builder, this is temporary solution
 	_ "github.com/p2pNG/core/services/status"
+	_ "github.com/p2pNG/core/services/transfer"
 )
 
 var commandRun = &cobra.Command{
@@ -40,9 +41,10 @@ func commandRunExec(_ *cobra.Command, _ []string) {
 	router.Use(middleware.Recoverer)
 	plugins := core.GetRouterPluginRegistry()
 	//todo: Replace with real config data
-	x := "{\"BuildName\":\"Hello World\"}"
+	x := "{\"BuildName\":\"Hello World\",\"LocalDiscoveryPort\":6553}"
 	for _, plugin := range plugins {
 		info := plugin.PluginInfo()
+		// todo: delete
 		logging.Log().Info("loading router plugin",
 			zap.String("plugin", info.Name), zap.String("version", info.Version))
 		//todo: Use Real config

@@ -1,19 +1,15 @@
 package storage
 
 import (
-	"crypto/sha512"
 	"errors"
 	"io"
 	"os"
 	"time"
 )
 
-// DefaultFileBlockSize is used for the default parameter to split a file to several blocks
-//todo: May Declare in elsewhere
-const DefaultFileBlockSize = 4 * 1024 * 1024
-
 // StatLocalFile return the LocalFileInfo for a file in the disk
-func StatLocalFile(filepath string, blockSize int64) (lf *LocalFileInfo, err error) {
+func StatLocalFile(filepath string, pieceLength int64, wellKnown []string) (lf *LocalFileInfo, err error) {
+	// todo: merge StatFile function
 	stat, err := os.Stat(filepath)
 	if err != nil {
 		return
@@ -22,23 +18,26 @@ func StatLocalFile(filepath string, blockSize int64) (lf *LocalFileInfo, err err
 		err = errors.New("not a valid file")
 		return
 	}
-	fi, err := StatFile(filepath, blockSize)
+	fileInfo, err := statFile(filepath, pieceLength, wellKnown)
 	if err != nil {
-		return
+		return nil, err
 	}
-
-	lf = new(LocalFileInfo)
-	lf.FileInfo = *fi
-	lf.LastModify = stat.ModTime()
-	lf.Path = filepath
-	return
+	modTime, err := time.Parse(TimeLayout, stat.ModTime().Format(TimeLayout))
+	if err != nil {
+		return nil, err
+	}
+	return &LocalFileInfo{
+		LastModify: modTime,
+		Path:       filepath,
+		FileInfo:   *fileInfo,
+	}, nil
 }
 
-// StatFile return the FileInfo for a file in the disk
-func StatFile(filepath string, blockSize int64) (fi *FileInfo, err error) {
-	//todo: calling should be revered, while LocalFileInfo including full os.FileInfo
-	if blockSize <= 1024*1024 {
-		blockSize = DefaultFileBlockSize
+// statFile return the FileInfo for a file in the disk
+func statFile(filepath string, pieceLength int64, wellKnown []string) (fileInfo *FileInfo, err error) {
+
+	if pieceLength <= MinFilePieceLength {
+		pieceLength = DefaultFilePieceLength
 	}
 
 	stat, err := os.Stat(filepath)
@@ -49,74 +48,53 @@ func StatFile(filepath string, blockSize int64) (fi *FileInfo, err error) {
 		err = errors.New("not a valid file")
 		return
 	}
-	fi = new(FileInfo)
-	fi.BlockSize = blockSize
-	fi.Name, fi.Size = stat.Name(), stat.Size()
-
-	f, err := os.Open(filepath)
+	file, err := os.Open(filepath)
 	if err != nil {
 		return
 	}
-	buf := make([]byte, blockSize)
-	fileSum := sha512.New()
-	blockHash := sha512.New512_256()
-	flagTail := false
-	var n int
 
+	var fileBuf []byte
+	var pieceHashList []string
+	lastPieceLength := 0
 	for {
-		n, err = f.Read(buf)
+		pieceBuf := make([]byte, pieceLength)
+		n, err := file.Read(pieceBuf)
 		if err != nil {
 			if err == io.EOF {
 				break
 			} else {
-				return
+				return nil, err
 			}
 		}
-		if int64(n) != blockSize {
-			flagTail = true
-			break
+
+		if int64(n) != pieceLength {
+			lastPieceLength = n
+			pieceBuf = pieceBuf[:lastPieceLength]
 		}
 
-		_, _ = fileSum.Write(buf)
-		blockHash.Reset()
-		_, _ = blockHash.Write(buf)
-		fi.BlockHash = append(fi.BlockHash, blockHash.Sum(nil))
-	}
-	if flagTail {
-		if int64(len(fi.BlockHash))*blockSize+int64(n) != fi.Size {
-			err = errors.New("read file error, length not matched")
-			return
+		fileBuf = append(fileBuf, pieceBuf...)
+
+		if pieceHash, err := HashFilePieceInBytes(pieceBuf); err == nil {
+			pieceHashList = append(pieceHashList, pieceHash)
+		} else {
+			return nil, err
 		}
-		_, _ = fileSum.Write(buf)
-		blockHash.Reset()
-		_, _ = blockHash.Write(buf)
-		fi.BlockHash = append(fi.BlockHash, blockHash.Sum(nil))
 	}
-	fi.Hash = fileSum.Sum(nil)
-	return fi, nil
-}
 
-// FileInfo describe a file by the SHA512 checksum for itself and SHA512-256 of every block of it
-type FileInfo struct {
-	Name string
-	Size int64
-	Hash []byte
-
-	BlockSize int64
-	BlockHash [][]byte
-}
-
-// LocalFileInfo extends FileInfo with the filepath and modify time
-type LocalFileInfo struct {
-	FileInfo
-	Path       string
-	LastModify time.Time
-}
-
-// SeedInfo contains a list of Files and WellKnown Peers
-type SeedInfo struct {
-	Title     string     //展示给用户的Title
-	Files     []FileInfo //包含的文件列表
-	WellKnown []string   //已知提供下载的节点地址
-	ExtraInfo []string   //附加展示给用户的信息
+	// check file length
+	if stat.Size() != int64(len(pieceHashList)-1)*pieceLength+int64(lastPieceLength) {
+		err = errors.New("read file error, length not matched")
+		return nil, err
+	}
+	fileHash, err := HashFileInBytes(fileBuf)
+	if err != nil {
+		return nil, err
+	}
+	return &FileInfo{
+		Size:        stat.Size(),
+		Hash:        fileHash,
+		PieceLength: pieceLength,
+		PieceHash:   pieceHashList,
+		WellKnown:   wellKnown,
+	}, nil
 }
