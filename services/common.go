@@ -3,13 +3,22 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/p2pNG/core"
 	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/modules/database"
+	"github.com/p2pNG/core/modules/listener"
 	"github.com/p2pNG/core/modules/request"
+	"github.com/p2pNG/core/services/discovery"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
 )
 
 type contextType int
@@ -49,6 +58,7 @@ const (
 	FileInfoHashToPeerPieceDB = "FileInfoHash-PeerPieceInfo"
 )
 
+// DataBaseBuckets database buckets to be init
 var DataBaseBuckets = []string{
 	//seed
 	SeedHashToSeedDB,
@@ -63,8 +73,8 @@ var DataBaseBuckets = []string{
 	//peer piece
 	FileInfoHashToPeerPieceDB}
 
-// GetHttpClient returns a http client
-func GetHttpClient() (client *http.Client, err error) {
+// GetHTTPClient returns a http client
+func GetHTTPClient() (client *http.Client, err error) {
 	client, _, err = request.GetDefaultHTTPClient()
 	return
 }
@@ -139,4 +149,64 @@ func GetAllKeyFromBucket(bucket string) (keys []string, err error) {
 		return err
 	})
 	return
+}
+
+// PeerInfoToStringAddr returns http addr format from discovery.PeerInfo
+func PeerInfoToStringAddr(info discovery.PeerInfo) string {
+	return "https://" + info.Address.String() + ":" + strconv.Itoa(info.Port)
+}
+
+// StartServer start server at port
+func StartServer(port int) {
+	logging.Log().Info("start server...")
+	db, err := database.GetDBEngine()
+	defer database.CloseDBEngine()
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	err = database.InitBuckets(db, DataBaseBuckets)
+	if err != nil {
+		logging.Log().Error("db err", zap.Error(err))
+		panic(err)
+	}
+	router := chi.NewRouter()
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	plugins := core.GetRouterPluginRegistry()
+	//todo: Replace with real config data
+	x := "{\"BuildName\":\"Hello World\",\"LocalDiscoveryPort\":6553}"
+	for _, plugin := range plugins {
+		info := plugin.PluginInfo()
+		// todo: delete
+		logging.Log().Info("loading router plugin",
+			zap.String("plugin", info.Name), zap.String("version", info.Version))
+		//todo: Use Real config
+		err := json.Unmarshal([]byte(x), plugin.Config())
+		if err != nil {
+			logging.Log().Fatal("load config for plugin failed", zap.Error(err), zap.String("plugin", info.Name))
+		}
+
+		err = plugin.Init()
+		if err != nil {
+			logging.Log().Fatal("init for plugin failed", zap.Error(err), zap.String("plugin", info.Name))
+		}
+
+		router.Mount(info.Prefix, plugin.GetRouter())
+
+		if err = database.InitBuckets(db, info.Buckets); err != nil {
+			logging.Log().Fatal("init buckets in database failed", zap.Error(err), zap.String("plugin", info.Name))
+		}
+	}
+	go func() {
+		err = listener.ListenBoth(router, ":"+strconv.Itoa(port))
+		if err != nil {
+			logging.Log().Fatal("start http service failed", zap.Error(err))
+		}
+	}()
+	{
+		osSignals := make(chan os.Signal, 1)
+		signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM)
+		<-osSignals
+	}
 }
