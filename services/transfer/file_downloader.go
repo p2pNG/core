@@ -255,8 +255,7 @@ func queryFileInfo(fileInfoHash string, peers []discovery.PeerInfo, ch chan *sto
 		if err == nil {
 			ch <- fileInfo
 			return
-		} else {
-			logging.Log().Warn("fail to query file info from "+peerAddr, zap.Error(err))
 		}
+		logging.Log().Warn("fail to query file info from "+peerAddr, zap.Error(err))
 	}
 }
