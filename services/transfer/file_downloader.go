@@ -6,20 +6,22 @@ import (
 	"github.com/p2pNG/core/internal/utils"
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
+	"github.com/p2pNG/core/services/discovery"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
+// ProgressStatus float64 data to describes download progress
 type ProgressStatus float64
 
-// RandomSelection select peer randomly
 // Progress[i] has the following possible values:
-// Unassigned means this piece haven't been assigned to DownloadFile
-// Assigned means this piece has already been assigned to DownloadFile but not start
+// Unassigned means this piece haven't been assigned to download
+// Assigned means this piece has already been assigned to download but not start
 // 0-1 means some part of this piece has been downloaded
 // Downloaded means this piece has been downloaded completely
 const (
@@ -33,13 +35,16 @@ const (
 	Downloaded ProgressStatus = 1
 )
 
+// Progress describes downloading progress of each piece of file
+type Progress []ProgressStatus
+
 // FileDownloader use to downloading a file to a specified path by fileInfo
 // Progress describes DownloadFile progress of each piece of file
 // Progress[i] correspond to fileInfo.PieceHash[i]
 // Progress[i] has the following possible values :
 // Unassigned, Assigned, 0-1 and Downloaded
 type FileDownloader struct {
-	Progress     []ProgressStatus
+	Progress     Progress
 	fileInfo     storage.FileInfo
 	fileWriter   *storage.FileWriter
 	fileInfoHash string
@@ -47,14 +52,26 @@ type FileDownloader struct {
 	client       *http.Client
 }
 
-func NewDownloaderByFileInfoHash(peerAddr string, fileInfoHash string, desFilePath string) (*FileDownloader, error) {
-	fileInfo, err := QueryFileInfoByFileInfoHash(peerAddr, fileInfoHash)
+// NewFileDownloaderByFileInfoHash query storage.FileInfo by fileInfoHash and invoke NewFileDownloader
+func NewFileDownloaderByFileInfoHash(fileInfoHash string, desFilePath string) (*FileDownloader, error) {
+	peers, err := getPeerByFileInfoHash(fileInfoHash)
 	if err != nil {
 		return nil, err
 	}
-	return NewFileDownloader(*fileInfo, desFilePath)
+	ch := make(chan *storage.FileInfo)
+	go queryFileInfo(fileInfoHash, peers, ch)
+	t := time.NewTicker(time.Second * 15)
+	select {
+	case fileInfo := <-ch:
+		return NewFileDownloader(*fileInfo, desFilePath)
+	case <-t.C:
+		return nil, errors.New("timeout")
+	}
 }
 
+// NewFileDownloader download file desFilePath to according to fileInfo
+// desFilePath is a complete file path like /download/filename.txt
+// desFilePath must be not exist or else error will be "file is already exist:"
 func NewFileDownloader(fileInfo storage.FileInfo, desFilePath string) (*FileDownloader, error) {
 
 	if fileInfo.WellKnown == nil || len(fileInfo.WellKnown) <= 0 {
@@ -70,14 +87,14 @@ func NewFileDownloader(fileInfo storage.FileInfo, desFilePath string) (*FileDown
 	}
 
 	// init http client
-	client, err := services.GetHttpClient()
+	client, err := services.GetHTTPClient()
 	if err != nil {
 		return nil, err
 	}
 
 	// init progress
 	progress := make([]ProgressStatus, len(fileInfo.PieceHash))
-	for i, _ := range progress {
+	for i := range progress {
 		progress[i] = Unassigned
 	}
 
@@ -104,16 +121,25 @@ func NewFileDownloader(fileInfo storage.FileInfo, desFilePath string) (*FileDown
 }
 
 // DownloadFile downloads file with random peer selection algorithm
-func (w *FileDownloader) DownloadFile() error {
-	err := w.downloadFile()
+func (w *FileDownloader) DownloadFile() (err error) {
+	ch := make(chan error)
+	t := time.NewTicker(time.Second * 3)
+	go w.downloadFile(ch)
+	select {
+	case err = <-ch:
+		break
+	case <-t.C:
+		err = errors.New("timeout")
+		break
+	}
 	if err != nil {
 		w.fileWriter.Clean()
 		logging.Log().Error("fail to DownloadFile file：", zap.Error(err))
 	}
-	return nil
+	return err
 }
 
-func (w *FileDownloader) downloadFile() error {
+func (w *FileDownloader) downloadFile(ch chan error) {
 	for {
 		// refresh ppInfo
 		ppInfo, err := getPeerPieceInfoByFileInfoHash(w.fileInfoHash)
@@ -141,11 +167,11 @@ func (w *FileDownloader) downloadFile() error {
 	// get LocalFileInfo and save
 	_, err := w.fileWriter.Complete()
 	if err != nil {
-		return err
+		ch <- nil
 	}
 	// todo: save LocalFileInfo and provide file
 	//return saveLocalFileInfo(w.fileInfoHash, *localFileInfo)
-	return nil
+	ch <- nil
 }
 
 // selectPeerRandomly returns selected peerIndex and pieceIndex
@@ -216,4 +242,18 @@ func (w *FileDownloader) downloadPiece(peerAddr string, pieceIndex int) error {
 		return errors.New("peer response error:" + resp.Header.Get(services.P2PNGMsg))
 	}
 	return nil
+}
+
+func queryFileInfo(fileInfoHash string, peers []discovery.PeerInfo, ch chan *storage.FileInfo) {
+	i := 0
+	for {
+		i = (i + 1) % len(peers)
+		peerAddr := services.PeerInfoToStringAddr(peers[i])
+		fileInfo, err := QueryFileInfoByFileInfoHash(peerAddr, fileInfoHash)
+		if err == nil {
+			ch <- fileInfo
+		} else {
+			logging.Log().Warn("fail to query file info from "+peerAddr, zap.Error(err))
+		}
+	}
 }

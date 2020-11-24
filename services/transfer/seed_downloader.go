@@ -11,7 +11,7 @@ import (
 // todo: use SeedDownloader to provide progress info
 
 // DownloadSeed DownloadFile all files in seed
-func DownloadSeed(seedInfoHash string, seedPath string) error {
+func DownloadSeed(seedInfoHash string, seedPath string) (err error) {
 
 	// todo : peer selection
 	//peers, err := getPeerBySeedHash(seedInfoHash)
@@ -28,16 +28,16 @@ func DownloadSeed(seedInfoHash string, seedPath string) error {
 
 	if utils.IsFilePathExist(seedPath) {
 		return errors.New("seed file is already exist:" + seedPath)
-	} else {
-		err := os.MkdirAll(seedPath, os.ModePerm)
-		if err != nil {
-			return err
-		}
 	}
 
-	if err := downloadSeed(seedInfo, seedPath, sequencePeerSelector); err != nil {
+	err = os.MkdirAll(seedPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	if err = downloadSeed(seedInfo, seedPath, sequencePeerSelector); err != nil {
 		// delete files and remove path
-		utils.RemoveFilePath(seedPath)
+		utils.RemoveFilePathAll(seedPath)
 	}
 
 	// todo: provide seed
