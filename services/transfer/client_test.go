@@ -6,34 +6,6 @@ import (
 	"testing"
 )
 
-func TestDownloadSeed(t *testing.T) {
-	type args struct {
-		seedInfoHash string
-		seedPath     string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "TestDownloadSeed",
-			args: args{
-				seedInfoHash: storage.TestSeedInfoHash,
-				seedPath:     storage.TestSeedPath,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := DownloadSeed(tt.args.seedInfoHash, tt.args.seedPath); (err != nil) != tt.wantErr {
-				t.Errorf("DownloadSeed() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestQueryFileInfoByFileInfoHash(t *testing.T) {
 	type args struct {
 		peerAddr     string
