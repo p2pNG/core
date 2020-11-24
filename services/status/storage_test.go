@@ -6,30 +6,26 @@ import (
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
 	"github.com/p2pNG/core/services/discovery"
+	"github.com/p2pNG/core/services/transfer"
 	"go.uber.org/zap"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestMain(m *testing.M) {
+	logging.Log().Info("init db...")
 	err := database.OpenDB("testing_database")
 	if err != nil {
 		logging.Log().Error("db err", zap.Error(err))
 		panic(err)
 	}
-	db, err := database.GetDBEngine()
-	if err != nil {
-		logging.Log().Error("db err", zap.Error(err))
-		panic(err)
-	}
-	err = database.InitBuckets(db, services.DataBaseBuckets)
-	if err != nil {
-		logging.Log().Error("db err", zap.Error(err))
-		panic(err)
-	}
+	go services.StartServer(6480)
+	time.Sleep(time.Second * 3)
+	SaveTestData()
+	transfer.SaveTestData()
 	m.Run()
 }
-
 func TestSaveFileInfoHash(t *testing.T) {
 	type args struct {
 		fileHashList []string

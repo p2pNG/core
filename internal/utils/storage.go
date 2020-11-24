@@ -138,6 +138,14 @@ func RemoveFilePath(path string) {
 	}
 }
 
+// RemoveFilePathAll remove a file or dir and it’s son from disk
+func RemoveFilePathAll(path string) {
+	err := os.RemoveAll(path)
+	if err != nil {
+		logging.Log().Error("fail to remove file or dir:"+path, zap.Error(err))
+	}
+}
+
 // CloseFile close file and print err msg if error happens
 func CloseFile(file *os.File) {
 	err := file.Close()

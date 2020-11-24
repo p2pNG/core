@@ -2,13 +2,147 @@ package transfer
 
 import (
 	"encoding/json"
-	errors "errors"
+	"errors"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
 	"github.com/p2pNG/core/services/discovery"
 	bolt "go.etcd.io/bbolt"
 )
+
+// SaveTestData save test data
+func SaveTestData() {
+_:
+	saveFileInfo(storage.TestFileInfo)
+_:
+	saveSeedInfo(storage.TestSeedInfo)
+_:
+	saveLocalFileInfo(storage.TestFileInfoHash, storage.TestLocalFileInfo)
+_:
+	savePeerPieceInfo(storage.TestFileInfoHash, storage.TestPeerPieceInfo)
+}
+
+// saveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB
+func saveFileInfo(fileInfo storage.FileInfo) error {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return err
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		// save FileInfoHash
+		buk := tx.Bucket([]byte(services.FileInfoHashToFileDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileInfoHashToFileDB + "] does not exist")
+		}
+		fileInfoHash := storage.HashFileInfo(fileInfo)
+		jsonData, err := json.Marshal(fileInfo)
+		if err != nil {
+			return err
+		}
+		err = buk.Put([]byte(fileInfoHash), jsonData)
+		if err != nil {
+			return err
+		}
+		// save FileHash
+		buk = tx.Bucket([]byte(services.FileHashToFileDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileHashToFileDB + "] does not exist")
+		}
+		// get fileInfoHashMap from bucket
+		fileInfoHashMapJSON := buk.Get([]byte(fileInfo.Hash))
+		fileInfoHashMap := make(map[string]storage.FileInfo)
+		if fileInfoHashMapJSON != nil {
+			err = json.Unmarshal(fileInfoHashMapJSON, &fileInfoHashMap)
+			if err != nil {
+				return err
+			}
+		}
+		// overwrite FileInfo if exist,because fileInfoHash won‘t change when well known change
+		fileInfoHashMap[fileInfoHash] = fileInfo
+		fileInfoHashMapJSON, err = json.Marshal(fileInfoHashMap)
+		if err != nil {
+			return err
+		}
+		err = buk.Put([]byte(fileInfo.Hash), fileInfoHashMapJSON)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+// saveSeedInfo save SeedInfo to SeedHashToSeedDB
+func saveSeedInfo(seedInfo storage.SeedInfo) error {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return err
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.SeedHashToSeedDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.SeedHashToSeedDB + "] does not exist")
+		}
+		seedInfoHash := storage.HashSeedInfo(seedInfo)
+		jsonData, err := json.Marshal(seedInfo)
+		if err != nil {
+			return err
+		}
+		return buk.Put([]byte(seedInfoHash), jsonData)
+	})
+}
+
+// saveLocalFileInfo save LocalFileInfo to FileInfoHashToLocalFileDB
+func saveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo) error {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return err
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileInfoHashToLocalFileDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileInfoHashToLocalFileDB + "] does not exist")
+		}
+		jsonData, err := json.Marshal(localFileInfo)
+		if err != nil {
+			return err
+		}
+		return buk.Put([]byte(fileInfoHash), jsonData)
+	})
+}
+
+func savePeerPieceInfo(fileInfoHash string, ppInfo storage.PeerPieceInfo) (err error) {
+	db, err := database.GetDBEngine()
+
+	if err != nil {
+		return
+	}
+	return db.Update(func(tx *bolt.Tx) error {
+		buk := tx.Bucket([]byte(services.FileInfoHashToPeerPieceDB))
+		if buk == nil {
+			return errors.New("database error : bucket [" + services.FileInfoHashToPeerPieceDB + "] does not exist")
+		}
+		var savedPPInfo = make(storage.PeerPieceInfo)
+		resp := buk.Get([]byte(fileInfoHash))
+		if resp != nil {
+			err = json.Unmarshal(resp, &savedPPInfo)
+			if err != nil {
+				return err
+			}
+		}
+		for peerAddr, pieceInfo := range ppInfo {
+			savedPPInfo[peerAddr] = pieceInfo
+		}
+
+		jsonData, err := json.Marshal(savedPPInfo)
+		if err != nil {
+			return err
+		}
+		return buk.Put([]byte(fileInfoHash), jsonData)
+	})
+}
 
 // getSeedInfoBySeedInfoHash returns SeedInfo that matches seedInfoHash
 func getSeedInfoBySeedInfoHash(seedInfoHash string) (seed storage.SeedInfo, err error) {
@@ -79,97 +213,6 @@ func getFileInfoByFileHash(fileHash string) (files []storage.FileInfo, err error
 		return nil
 	})
 	return
-}
-
-// saveSeedInfo save SeedInfo to SeedHashToSeedDB
-func saveSeedInfo(seedInfo storage.SeedInfo) error {
-	db, err := database.GetDBEngine()
-
-	if err != nil {
-		return err
-	}
-	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.SeedHashToSeedDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + services.SeedHashToSeedDB + "] does not exist")
-		}
-		seedInfoHash := storage.HashSeedInfo(seedInfo)
-		jsonData, err := json.Marshal(seedInfo)
-		if err != nil {
-			return err
-		}
-		return buk.Put([]byte(seedInfoHash), jsonData)
-	})
-}
-
-// saveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB
-func saveFileInfo(fileInfo storage.FileInfo) error {
-	db, err := database.GetDBEngine()
-
-	if err != nil {
-		return err
-	}
-	return db.Update(func(tx *bolt.Tx) error {
-		// save FileInfoHash
-		buk := tx.Bucket([]byte(services.FileInfoHashToFileDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileInfoHashToFileDB + "] does not exist")
-		}
-		fileInfoHash := storage.HashFileInfo(fileInfo)
-		jsonData, err := json.Marshal(fileInfo)
-		if err != nil {
-			return err
-		}
-		err = buk.Put([]byte(fileInfoHash), jsonData)
-		if err != nil {
-			return err
-		}
-		// save FileHash
-		buk = tx.Bucket([]byte(services.FileHashToFileDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileHashToFileDB + "] does not exist")
-		}
-		// get fileInfoHashMap from bucket
-		fileInfoHashMapJSON := buk.Get([]byte(fileInfo.Hash))
-		fileInfoHashMap := make(map[string]storage.FileInfo)
-		if fileInfoHashMapJSON != nil {
-			err = json.Unmarshal(fileInfoHashMapJSON, &fileInfoHashMap)
-			if err != nil {
-				return err
-			}
-		}
-		// overwrite FileInfo if exist,because fileInfoHash won‘t change when well known change
-		fileInfoHashMap[fileInfoHash] = fileInfo
-		fileInfoHashMapJSON, err = json.Marshal(fileInfoHashMap)
-		if err != nil {
-			return err
-		}
-		err = buk.Put([]byte(fileInfo.Hash), fileInfoHashMapJSON)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-}
-
-// saveLocalFileInfo save LocalFileInfo to FileInfoHashToLocalFileDB
-func saveLocalFileInfo(fileInfoHash string, localFileInfo storage.LocalFileInfo) error {
-	db, err := database.GetDBEngine()
-
-	if err != nil {
-		return err
-	}
-	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.FileInfoHashToLocalFileDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileInfoHashToLocalFileDB + "] does not exist")
-		}
-		jsonData, err := json.Marshal(localFileInfo)
-		if err != nil {
-			return err
-		}
-		return buk.Put([]byte(fileInfoHash), jsonData)
-	})
 }
 
 // getLocalFileInfoByFileInfoHash returns LocalFileInfo that matches fileInfoHash
@@ -298,35 +341,4 @@ func getPeerPieceInfoByFileInfoHash(fileInfoHash string) (ppInfo storage.PeerPie
 		return json.Unmarshal(jsonData, &ppInfo)
 	})
 	return
-}
-
-func savePeerPieceInfo(fileInfoHash string, ppInfo storage.PeerPieceInfo) (err error) {
-	db, err := database.GetDBEngine()
-
-	if err != nil {
-		return
-	}
-	return db.Update(func(tx *bolt.Tx) error {
-		buk := tx.Bucket([]byte(services.FileInfoHashToPeerPieceDB))
-		if buk == nil {
-			return errors.New("database error : bucket [" + services.FileInfoHashToPeerPieceDB + "] does not exist")
-		}
-		var savedPPInfo = make(storage.PeerPieceInfo)
-		resp := buk.Get([]byte(fileInfoHash))
-		if resp != nil {
-			err = json.Unmarshal(resp, &savedPPInfo)
-			if err != nil {
-				return err
-			}
-		}
-		for peerAddr, pieceInfo := range ppInfo {
-			savedPPInfo[peerAddr] = pieceInfo
-		}
-
-		jsonData, err := json.Marshal(savedPPInfo)
-		if err != nil {
-			return err
-		}
-		return buk.Put([]byte(fileInfoHash), jsonData)
-	})
 }
