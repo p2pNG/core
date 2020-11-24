@@ -158,7 +158,7 @@ func PeerInfoToStringAddr(info discovery.PeerInfo) string {
 
 // StartServer start server at port
 func StartServer(port int) {
-	logging.Log().Info("start server...")
+	logging.Log().Info("start server at " + strconv.Itoa(port) + " ...")
 	db, err := database.GetDBEngine()
 	defer database.CloseDBEngine()
 	if err != nil {
