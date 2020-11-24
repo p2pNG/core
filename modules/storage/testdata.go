@@ -142,6 +142,9 @@ func getTestModifyTime() time.Time {
 
 func getTestDataPath() (path string) {
 	err := filepath.Walk("../..", func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			panic(err)
+		}
 		if info.IsDir() && filepath.Base(p) == "testdata" {
 			path, err = filepath.Abs(p)
 			if err != nil {
