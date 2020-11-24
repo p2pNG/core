@@ -11,8 +11,7 @@ import (
 
 // HashSeedInfo returns hash of SeedInfo content
 func HashSeedInfo(seedInfo SeedInfo) (seedInfoHash string) {
-	var seedInfoContent []byte
-	seedInfoContent = append([]byte(seedInfo.Title + separator))
+	seedInfoContent := []byte(seedInfo.Title + separator)
 	if seedInfo.ExtraInfo != nil {
 		for k, v := range seedInfo.ExtraInfo {
 			seedInfoContent = append(seedInfoContent, []byte(k+separator+v+separator)...)
@@ -21,8 +20,7 @@ func HashSeedInfo(seedInfo SeedInfo) (seedInfoHash string) {
 	if seedInfo.Files != nil {
 		// append each SeedFileItem
 		for _, v := range seedInfo.Files {
-			var seedFileItemContent []byte
-			seedFileItemContent = append([]byte(v.Hash + separator))
+			seedFileItemContent := []byte(v.Hash + separator)
 			seedFileItemContent = append(seedFileItemContent, []byte(strconv.Itoa(int(v.Size))+separator)...)
 			seedFileItemContent = append(seedFileItemContent, []byte(v.Path+separator)...)
 			seedFileItemContent = append(seedFileItemContent, []byte(strconv.Itoa(int(v.RecPieceLength))+separator)...)

@@ -215,7 +215,9 @@ func (w *FileDownloader) downloadPiece(peerAddr string, pieceIndex int) error {
 
 	if resp.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(resp.Body)
-
+		if err != nil {
+			return err
+		}
 		// check piece length
 		if int64(len(body)) > w.fileInfo.PieceLength {
 			return errors.New("receive content length is over piece length")

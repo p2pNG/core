@@ -49,7 +49,13 @@ func NewFileWriter(fileInfo FileInfo, filePath string) (writer *FileWriter, err 
 func (w *FileWriter) WritePiece(data []byte, pieceIndex int) error {
 	offset := int64(pieceIndex) * w.info.PieceLength
 	offset, err := w.file.Seek(offset, 0)
-	_, err = w.file.WriteAt(data, offset)
+	if err != nil {
+		return err
+	}
+	n, err := w.file.WriteAt(data, offset)
+	if n != len(data) {
+		return errors.New("piece writing is not completed")
+	}
 	return err
 }
 
