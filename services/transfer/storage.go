@@ -3,6 +3,7 @@ package transfer
 import (
 	"encoding/json"
 	"errors"
+	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
@@ -12,14 +13,22 @@ import (
 
 // SaveTestData save test data
 func SaveTestData() {
-_:
-	saveFileInfo(storage.TestFileInfo)
-_:
-	saveSeedInfo(storage.TestSeedInfo)
-_:
-	saveLocalFileInfo(storage.TestFileInfoHash, storage.TestLocalFileInfo)
-_:
-	savePeerPieceInfo(storage.TestFileInfoHash, storage.TestPeerPieceInfo)
+	e := saveFileInfo(storage.TestFileInfo)
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+	e = saveSeedInfo(storage.TestSeedInfo)
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+	e = saveLocalFileInfo(storage.TestFileInfoHash, storage.TestLocalFileInfo)
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+	e = savePeerPieceInfo(storage.TestFileInfoHash, storage.TestPeerPieceInfo)
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
 }
 
 // saveFileInfo save FileInfo to FileInfoHashToFileDB and FileHashToFileDB

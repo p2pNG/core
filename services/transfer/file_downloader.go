@@ -28,7 +28,7 @@ const (
 	eoPiece   int    = -1
 	noAvlPeer string = "noAvlPeer"
 	peerAvl   byte   = 1
-	peerUnAvl byte   = 0
+	//	peerUnAvl byte   = 0
 	// Progress[i]
 	Unassigned ProgressStatus = -1
 	Assigned   ProgressStatus = 0

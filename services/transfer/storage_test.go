@@ -8,6 +8,7 @@ import (
 	"github.com/p2pNG/core/services/discovery"
 	"github.com/p2pNG/core/services/status"
 	"go.uber.org/zap"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -25,6 +26,7 @@ func TestMain(m *testing.M) {
 	status.SaveTestData()
 	SaveTestData()
 	m.Run()
+	os.Exit(0)
 }
 
 // Save

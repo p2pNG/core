@@ -34,3 +34,27 @@ func TestDownloadSeed(t *testing.T) {
 		})
 	}
 }
+
+func Test_randomPeerSelector(t *testing.T) {
+	type args struct {
+		peers []string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Test_randomPeerSelector",
+			args: args{
+				peers: []string{
+					storage.TestPeerAddr},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := randomPeerSelector(tt.args.peers)
+			t.Log(got())
+		})
+	}
+}

@@ -3,6 +3,7 @@ package status
 import (
 	"encoding/json"
 	"errors"
+	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/modules/database"
 	"github.com/p2pNG/core/modules/storage"
 	"github.com/p2pNG/core/services"
@@ -12,24 +13,39 @@ import (
 
 // SaveTestData save test data
 func SaveTestData() {
-_:
-	discovery.SavePeers([]discovery.PeerInfo{
+	e := discovery.SavePeers([]discovery.PeerInfo{
 		storage.TestPeerInfo,
 	})
-_:
-	saveFileHash([]string{
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+
+	e = saveFileHash([]string{
 		storage.TestFileHash,
 	}, storage.TestPeerInfo)
-_:
-	saveFileInfoHash([]string{
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+
+	e = saveFileInfoHash([]string{
 		storage.TestFileInfoHash,
 	}, storage.TestPeerInfo)
-_:
-	saveSeedInfoHash([]string{
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+
+	e = saveSeedInfoHash([]string{
 		storage.TestSeedInfoHash,
 	}, storage.TestPeerInfo)
-_:
-	savePeerPieceInfoList(storage.TestPPInfoList)
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+
+	e = savePeerPieceInfoList(storage.TestPPInfoList)
+	if e != nil {
+		logging.Log().Warn(e.Error())
+	}
+
 }
 
 // saveSeedInfoHash to save SeedInfoHash list
