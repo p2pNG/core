@@ -4,10 +4,12 @@ import (
 	"github.com/p2pNG/core/internal/logging"
 	"github.com/p2pNG/core/services/discovery"
 	"net"
+	"os"
+	"path/filepath"
 	"time"
 )
 
-var testDataPath = "./test/testdata"
+var testDataPath = getTestDataPath()
 var testSeedFilePath = "/TestFile/TestFile_Downloaded.txt"
 
 // TestFilePath path to provide file resource
@@ -136,4 +138,22 @@ func getTestModifyTime() time.Time {
 		logging.Log().Error(err.Error())
 	}
 	return t
+}
+
+func getTestDataPath() (path string) {
+	err := filepath.Walk("../..", func(p string, info os.FileInfo, err error) error {
+		if info.IsDir() && filepath.Base(p) == "testdata" {
+			path, err = filepath.Abs(p)
+			if err != nil {
+				panic(err)
+			}
+			logging.Log().Info("set testdata path to : " + path)
+			return nil
+		}
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	return path
 }
