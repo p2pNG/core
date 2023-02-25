@@ -8,6 +8,6 @@ require (
 	github.com/spf13/cobra v1.1.1
 	go.etcd.io/bbolt v1.3.2
 	go.uber.org/zap v1.10.0
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.1.0
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20201103104416-57fc603b7f52
 )
